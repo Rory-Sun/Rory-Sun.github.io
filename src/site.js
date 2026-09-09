@@ -2,11 +2,13 @@
 import { PRODUCTS } from './products.js';
 
 import './stars.js';
+import './theme.js';
+import './globe.js';
 
 // ---- products (data-driven)
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function posterHTML(p) {
-  if (p.poster) return `<img class="demo-poster" src="${esc(p.poster)}" alt="${esc(p.title)} 预览" />`;
+  if (p.poster) return `<img class="demo-poster" src="${esc(p.poster)}" alt="${esc(p.title)} 预览" loading="lazy" decoding="async" />`;
   return `<div class="demo-poster placeholder" style="--accent:${esc(p.accent || '#3d8ee6')}"><span class="ph-emoji">${p.emoji || '✦'}</span><span class="ph-title">${esc(p.title)}</span></div>`;
 }
 function showcaseHTML(p, i) {

@@ -60,11 +60,12 @@ export const PRODUCTS = [
   },
   {
     id: 'tree-of-life',
-    kicker: '研发中',
+    kicker: '地球纪元 · 新视角',
     title: '生命之树',
-    desc: '可缩放的演化树，与地球纪元的时间轴联动：拖到任何年代，看看那时的世界里住着谁。',
+    desc: '一棵可缩放的演化树，与地球纪元共用一条时间轴：拖动时间，谱系随之生长；灭绝的支系停在原地标上 †；点击任一物种查看简介并跳到它的起源时刻。约 90 个谱系，从最后共同祖先到智人。',
     emoji: '🧬',
     accent: '#8a5aa8',
+    url: 'https://rory-sun.github.io/earth-chronicle/?mode=life',
     status: 'soon',
   },
 ];
