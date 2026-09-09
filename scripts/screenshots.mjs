@@ -50,6 +50,13 @@ try {
       await page.goto(base, { waitUntil: 'networkidle' });
       // wait for the WebGL globe (or give up after a few seconds if the runner has no GL)
       await page.waitForSelector('.orb.ready', { timeout: 8000 }).catch(() => console.warn(`  [${name}/${theme}] globe did not become ready; capturing poster fallback`));
+      // scroll through once so lazy-loaded posters are requested, then wait for them to decode
+      await page.evaluate(async () => {
+        const step = innerHeight * 0.8;
+        for (let y = 0; y < document.documentElement.scrollHeight; y += step) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
+        scrollTo(0, 0);
+        await Promise.all([...document.images].filter((i) => !i.complete).map((i) => new Promise((r) => { i.onload = i.onerror = r; })));
+      });
       // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site
       const file = path.join(out, `${name}-${theme}.png`);
       await page.screenshot({ path: file, fullPage: true });

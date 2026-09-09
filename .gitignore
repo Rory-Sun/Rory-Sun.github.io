@@ -5,3 +5,4 @@ Thumbs.db
 *.stackdump
 screenshots/
 .lighthouseci/
+debug.log
