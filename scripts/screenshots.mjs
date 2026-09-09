@@ -20,7 +20,7 @@ if (!existsSync(path.join(dist, 'index.html'))) {
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.xml': 'application/xml', '.txt': 'text/plain', '.json': 'application/json' };
 const server = createServer(async (req, res) => {
   const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  let file = path.join(dist, url.endsWith('/') ? url + 'index.html' : url);
+  const file = path.join(dist, url.endsWith('/') ? url + 'index.html' : url);
   if (!file.startsWith(dist)) { res.writeHead(403).end(); return; }
   try {
     const body = await readFile(file);
@@ -51,12 +51,15 @@ try {
       // wait for the WebGL globe (or give up after a few seconds if the runner has no GL)
       await page.waitForSelector('.orb.ready', { timeout: 8000 }).catch(() => console.warn(`  [${name}/${theme}] globe did not become ready; capturing poster fallback`));
       // scroll through once so lazy-loaded posters are requested, then wait for them to decode
+      // (this callback runs inside the page, hence the browser globals)
+      /* eslint-disable no-undef */
       await page.evaluate(async () => {
         const step = innerHeight * 0.8;
         for (let y = 0; y < document.documentElement.scrollHeight; y += step) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
         scrollTo(0, 0);
         await Promise.all([...document.images].filter((i) => !i.complete).map((i) => new Promise((r) => { i.onload = i.onerror = r; })));
       });
+      /* eslint-enable no-undef */
       // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site
       const file = path.join(out, `${name}-${theme}.png`);
       await page.screenshot({ path: file, fullPage: true });
