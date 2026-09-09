@@ -43,11 +43,11 @@
   --text-strong: #0b1220;
   --pill-text: #22304a;
   --muted: #5b6980;
-  --accent: #1f6fd6;
+  --accent: #1b64c4;
   --accent-2: #b8690f;
-  --accent-soft: rgba(31, 111, 214, 0.1);
-  --accent-soft-2: rgba(31, 111, 214, 0.22);
-  --accent-ring: rgba(31, 111, 214, 0.4);
+  --accent-soft: rgba(27, 100, 196, 0.1);
+  --accent-soft-2: rgba(27, 100, 196, 0.22);
+  --accent-ring: rgba(27, 100, 196, 0.4);
   --glow: rgba(31, 111, 214, 0.22);
   --shadow: rgba(20, 40, 80, 0.16);
   --thumb-bg: #dfe6f3;

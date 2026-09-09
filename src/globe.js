@@ -136,6 +136,7 @@ async function start() {
 
   // ---- interaction: drag to rotate, with inertia
   let dragging = false, lastX = 0, lastY = 0, velX = 0, velY = 0, pitch = 0;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const autoSpeed = () => (reduceMotion.matches ? 0 : 0.07);   // rad/s
   orb.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
@@ -146,9 +147,11 @@ async function start() {
     if (!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
-    velX = dx * 0.006; velY = dy * 0.004;
-    spin.rotation.y += velX;
-    pitch = Math.max(-0.7, Math.min(0.7, pitch + velY));
+    spin.rotation.y += dx * 0.006;
+    pitch = Math.max(-0.7, Math.min(0.7, pitch + dy * 0.004));
+    // smoothed, capped release velocity (per frame) so a single large move can't spin the globe wildly
+    velX = clamp(0.6 * velX + 0.4 * dx * 0.006, -0.08, 0.08);
+    velY = clamp(0.6 * velY + 0.4 * dy * 0.004, -0.05, 0.05);
     needsRender = true;
   });
   const release = () => { dragging = false; };

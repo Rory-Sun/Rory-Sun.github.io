@@ -73,7 +73,11 @@ document.querySelectorAll('[data-launch]').forEach((b) => b.addEventListener('cl
 if (location.hash.startsWith('#demo-')) launchDemo(location.hash.slice(6));
 
 // ---- scroll reveal (after products are rendered)
-const io = new IntersectionObserver((entries) => {
-  for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-}, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+// Browsers with scroll-driven animations handle .reveal purely in CSS (see site.css);
+// everything else falls back to an IntersectionObserver.
+if (!(window.CSS && CSS.supports('animation-timeline: view()'))) {
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+}
