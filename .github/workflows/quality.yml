@@ -1,0 +1,78 @@
+# Quality gate: runs on every push and pull request, independently of the Pages deploy.
+#   1. validate product data + lint + build      (also enforced by deploy.yml, so a failure there blocks deploys)
+#   2. Lighthouse against the built site         (thresholds in lighthouserc.json; report link in the job log)
+#   3. screenshots at three viewport widths      (download from the run's Artifacts panel)
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Validate · Lint · Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  screenshots:
+    name: Screenshots
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture desktop / tablet / mobile
+        run: node scripts/screenshots.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.sha }}
+          path: screenshots
+          retention-days: 30

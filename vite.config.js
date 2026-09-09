@@ -1,5 +1,10 @@
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { PRODUCTS } from './src/products.js';
+import { validateProducts } from './scripts/validate-products.mjs';
+
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 const SITE = 'https://rory-sun.github.io/';
 const abs = (u) => (!u ? undefined : u.startsWith('http') ? u : new URL(u.replace(/^\//, ''), SITE).href);
@@ -61,8 +66,18 @@ function structuredData() {
 }
 
 function seoPlugin() {
+  let isBuild = false;
   return {
     name: 'rory-seo',
+    configResolved(config) { isBuild = config.command === 'build'; },
+    // fail the production build (and warn loudly in dev) when a product record is malformed
+    buildStart() {
+      const errors = validateProducts(PRODUCTS, { publicDir: path.join(ROOT, 'public') });
+      if (!errors.length) return;
+      const msg = `products.js has ${errors.length} problem(s):\n  - ${errors.join('\n  - ')}`;
+      if (isBuild) throw new Error(msg);
+      console.warn(`\n[rory-seo] ${msg}\n`);
+    },
     transformIndexHtml() {
       return [{ tag: 'script', attrs: { type: 'application/ld+json' }, children: structuredData(), injectTo: 'head' }];
     },
