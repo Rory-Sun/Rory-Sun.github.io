@@ -18,7 +18,7 @@ export const PRODUCTS = [
     subtitle: '46 亿年的行星演化 · 30 万年的人类迁徙',
     desc: '一个完全离线的交互式三维地球平台：拖动旋转，拖动时间轴，看大陆漂移、雪球地球、恐龙灭绝，直到人类的灯光点亮夜空。现代地球使用 NASA Blue Marble 与 Black Marble 卫星影像，远古时代的地形、云层与夜灯由 Blender 程序化生成并烘焙。',
     tags: ['三维交互', '时间轴叙事', 'Blender 烘焙', '零 API', '离线运行'],
-    poster: '/site/earth_preview.png',
+    poster: '/site/earth_preview_1200.webp',
     accent: '#3d8ee6',
     url: 'https://rory-sun.github.io/earth-chronicle/',
     embed: 'https://rory-sun.github.io/earth-chronicle/?embed=1',
@@ -36,7 +36,7 @@ export const PRODUCTS = [
     subtitle: 'A place to slow down',
     desc: '走进溪畔秋日。自由环绕一座三维山村，点击石桥、稻田与小狗，听见溪水与鸟鸣——一个为放慢节奏而做的沉浸式场景。',
     tags: ['三维场景', '环境音效', '点击互动', '氛围叙事'],
-    poster: 'https://rory-sun.github.io/blender-designer/preview-desktop.png',
+    poster: '/site/autumn_creek_1200.webp',   // self-hosted 1200px copy of blender-designer/preview-desktop.png
     accent: '#3f7a4a',
     emoji: '🍂',
     url: 'https://rory-sun.github.io/blender-designer/?v=3d-final',
