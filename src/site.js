@@ -3,6 +3,7 @@ import { PRODUCTS } from './products.js';
 
 import './stars.js';
 import './theme.js';
+import './nav.js';
 import './globe.js';
 
 // ---- products (data-driven)
@@ -60,13 +61,29 @@ document.getElementById('product-tabs').innerHTML = live.map((p) => `<a href="#$
 function launchDemo(id) {
   const p = PRODUCTS.find((x) => x.id === id);
   const frame = document.querySelector(`[data-frame="${id}"]`);
-  if (!p || !frame || frame.classList.contains('live')) return;
+  if (!p || !frame || frame.classList.contains('live') || frame.classList.contains('loading')) return;
+  // loading state: dim the poster and show a spinner until the iframe reports load;
+  // after a while also offer the full-version link in case the embed is blocked or slow
+  const status = document.createElement('div');
+  status.className = 'demo-loading';
+  status.setAttribute('role', 'status');
+  status.innerHTML = `<span class="spinner" aria-hidden="true"></span><span>正在加载 ${esc(p.title)}…</span><a href="${esc(p.url)}" target="_blank" rel="noopener">加载太慢？在新标签页打开 ↗</a>`;
+  frame.appendChild(status);
+  frame.classList.add('loading');
+  const slow = setTimeout(() => status.classList.add('slow'), 6000);
+
   const iframe = document.createElement('iframe');
   iframe.src = p.embed;
   iframe.title = p.title;
   iframe.allow = 'fullscreen; autoplay';
+  iframe.loading = 'eager';
+  iframe.addEventListener('load', () => {
+    clearTimeout(slow);
+    frame.classList.remove('loading');
+    frame.classList.add('live');
+    status.remove();
+  });
   frame.appendChild(iframe);
-  frame.classList.add('live');
   frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 document.querySelectorAll('[data-launch]').forEach((b) => b.addEventListener('click', () => launchDemo(b.dataset.launch)));

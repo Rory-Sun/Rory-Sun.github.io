@@ -27,7 +27,10 @@ btn?.addEventListener('click', () => {
   root.style.setProperty('--vt-x', `${x}px`);
   root.style.setProperty('--vt-y', `${y}px`);
   root.style.setProperty('--vt-r', `${radius}px`);
-  document.startViewTransition(() => apply(next));
+  // the theme is applied synchronously inside the callback; if the browser aborts or times out the
+  // visual transition (hidden tab, heavy frame), that is cosmetic only, so swallow the rejection
+  const vt = document.startViewTransition(() => apply(next));
+  for (const p of [vt.ready, vt.finished, vt.updateCallbackDone]) p.catch(() => {});
 });
 
 if (btn) label();

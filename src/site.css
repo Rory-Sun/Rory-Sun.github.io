@@ -92,6 +92,15 @@ main, header, footer { position: relative; z-index: 1; }
 .theme-toggle { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; transition: background .2s, transform .2s; }
 .theme-toggle:hover { background: var(--accent-soft); transform: rotate(-12deg); }
 .theme-toggle svg { width: 18px; height: 18px; }
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.nav-toggle { display: none; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
+.nav-toggle span { display: block; width: 16px; height: 1.6px; background: currentColor; border-radius: 2px; transition: transform .25s, opacity .2s; grid-area: 1 / 1; }
+.nav-toggle span:nth-child(1) { transform: translateY(-5px); }
+.nav-toggle span:nth-child(3) { transform: translateY(5px); }
+.nav.open .nav-toggle span:nth-child(1) { transform: rotate(45deg); }
+.nav.open .nav-toggle span:nth-child(2) { opacity: 0; }
+.nav.open .nav-toggle span:nth-child(3) { transform: rotate(-45deg); }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 .theme-toggle .icon-sun { display: none; }
 :root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
 :root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
@@ -148,6 +157,17 @@ h1 em { font-style: normal; color: transparent; background: var(--h1-grad); -web
 .demo-fullscreen { position: absolute; right: 14px; top: 12px; font-size: 12px; padding: 6px 12px; border-radius: 999px; background: rgba(8,14,28,.75); border: 1px solid rgba(140,170,220,.16); color: #fff; z-index: 3; }
 .demo-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #02040a; }
 .demo-frame.live .demo-poster, .demo-frame.live .demo-overlay { display: none; }
+/* loading state between clicking "launch" and the iframe's load event */
+.demo-frame.loading .demo-overlay { display: none; }
+.demo-frame.loading .demo-poster { filter: blur(8px) brightness(.45); transform: scale(1.06); }
+.demo-frame.loading iframe { opacity: 0; }
+.demo-frame iframe { transition: opacity .5s; }
+.demo-loading { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #eef3fb; font-size: 14px; letter-spacing: .06em; text-shadow: 0 1px 6px rgba(0,0,0,.8); }
+.demo-loading a { font-size: 12px; color: #bcd4ff; opacity: 0; transition: opacity .4s; pointer-events: none; text-decoration: underline; text-underline-offset: 3px; }
+.demo-loading.slow a { opacity: 1; pointer-events: auto; }
+.spinner { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,.18); border-top-color: #8fd0ff; animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.5s; } }
 .product-meta { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .feature-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -209,8 +229,12 @@ h1 em { font-style: normal; color: transparent; background: var(--h1-grad); -web
   .about-grid { grid-template-columns: 1fr; }
   .product-grid, .feature-list { grid-template-columns: 1fr; }
   .pipeline { grid-template-columns: 1fr 1fr; }
-  .nav-links { gap: 12px; }
-  .nav-links a:not(.nav-cta) { display: none; }
+  /* mobile nav: links collapse into a panel under the bar, opened by the hamburger */
+  .nav-toggle { display: inline-grid; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; padding: 8px clamp(20px, 5vw, 72px) 22px; background: var(--panel-solid); border-bottom: 1px solid var(--line); box-shadow: 0 30px 60px var(--shadow); font-size: 16px; }
+  .nav.open .nav-links { display: flex; animation: menu-in .22s ease; }
+  .nav-links a { padding: 14px 4px; border-bottom: 1px solid var(--line); color: var(--text); }
+  .nav-links .nav-cta { margin-top: 14px; text-align: center; justify-content: center; display: flex; border-bottom: 0; }
 }
 @media (max-width: 560px) { .pipeline { grid-template-columns: 1fr; } .hero-stats { gap: 20px; } }
 

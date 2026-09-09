@@ -6,6 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rory · 创意技术与三维可视化</title>
   <meta name="description" content="Rory 的个人网站：作品、产品与实验。主打产品「地球纪元」——一个用 Blender 与 Three.js 打造的 46 亿年地球演化交互平台。" />
+  <link rel="canonical" href="https://rory-sun.github.io/" />
+  <meta name="theme-color" content="#04070f" />
+  <meta name="author" content="Rory" />
+
+  <!-- share cards: Open Graph (WeChat, Feishu, DingTalk, Telegram, LinkedIn, Facebook) + Twitter/X -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RORY.studio" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:url" content="https://rory-sun.github.io/" />
+  <meta property="og:title" content="Rory · 创意技术与三维可视化" />
+  <meta property="og:description" content="用 Blender、Three.js 与自写着色器，把 46 亿年的地球演化做成可以亲手转动的世界。作品：地球纪元、溪畔秋日。" />
+  <meta property="og:image" content="https://rory-sun.github.io/site/og.jpg" />
+  <meta property="og:image:secure_url" content="https://rory-sun.github.io/site/og.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="RORY.studio：创意技术与三维可视化，配一颗三维渲染的地球" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Rory · 创意技术与三维可视化" />
+  <meta name="twitter:description" content="用 Blender、Three.js 与自写着色器，把 46 亿年的地球演化做成可以亲手转动的世界。" />
+  <meta name="twitter:image" content="https://rory-sun.github.io/site/og.jpg" />
+  <meta name="twitter:image:alt" content="RORY.studio：创意技术与三维可视化，配一颗三维渲染的地球" />
+
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231b4f9c'/%3E%3Cpath d='M9 10c3-2 6 0 8 2s5 1 6-1 1 5-2 7-6 0-7-2-4-1-6 0-1-4 1-6z' fill='%2360a35a'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/src/site.css" />
 </head>
@@ -15,17 +38,22 @@
 
   <header class="nav">
     <a class="nav-brand" href="#top">RORY<span>.studio</span></a>
-    <nav class="nav-links">
+    <nav id="nav-menu" class="nav-links" aria-label="站内导航">
       <a href="#about">关于</a>
       <a href="#products">产品</a>
       <a href="#stack">技术</a>
       <a href="#contact">联系</a>
       <a class="nav-cta" href="#products">查看作品</a>
+    </nav>
+    <div class="nav-actions">
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换到浅色模式">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
-    </nav>
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
   <main id="top">
