@@ -42,13 +42,18 @@ function showcaseHTML(p, i) {
   </article>`;
 }
 function soonHTML(p) {
-  return `<article class="card soon reveal" style="--accent:${esc(p.accent || '#3d8ee6')}"><div class="card-thumb placeholder"><span>${p.emoji || '✦'}</span></div><div class="card-body"><div class="eyebrow">${esc(p.kicker || '研发中')}</div><h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p></div></article>`;
+  // small card; with a url it becomes a link (e.g. a new mode inside an existing product)
+  const inner = `<div class="card-thumb placeholder"><span>${p.emoji || '✦'}</span></div><div class="card-body"><div class="eyebrow">${esc(p.kicker || '研发中')}</div><h3>${esc(p.title)}${p.url ? ' <span class="card-arrow">↗</span>' : ''}</h3><p>${esc(p.desc)}</p></div>`;
+  const style = `style="--accent:${esc(p.accent || '#3d8ee6')}"`;
+  return p.url
+    ? `<a class="card reveal card-link" href="${esc(p.url)}" target="_blank" rel="noopener" ${style}>${inner}</a>`
+    : `<article class="card soon reveal" ${style}>${inner}</article>`;
 }
 const live = PRODUCTS.filter((p) => p.status !== 'soon');
 const soon = PRODUCTS.filter((p) => p.status === 'soon');
 document.getElementById('product-list').innerHTML = live.map(showcaseHTML).join('');
 document.getElementById('product-soon').innerHTML = soon.map(soonHTML).join('');
-document.getElementById('product-tabs').innerHTML = live.map((p) => `<a href="#${esc(p.id)}">${esc(p.title)}</a>`).join('') + (soon.length ? `<span class="tab-soon">+ ${soon.length} 个研发中</span>` : '');
+document.getElementById('product-tabs').innerHTML = live.map((p) => `<a href="#${esc(p.id)}">${esc(p.title)}</a>`).join('') + (soon.filter((p) => !p.url).length ? `<span class="tab-soon">+ ${soon.filter((p) => !p.url).length} 个研发中</span>` : '');
 
 function launchDemo(id) {
   const p = PRODUCTS.find((x) => x.id === id);

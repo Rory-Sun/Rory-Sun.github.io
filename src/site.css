@@ -142,3 +142,6 @@ h1 em { font-style: normal; color: transparent; background: linear-gradient(90de
 
 .btn.disabled { opacity: .7; cursor: default; }
 .btn.disabled:hover { transform: none; background: var(--panel); }
+
+.card-link { display: block; color: inherit; }
+.card-arrow { color: var(--accent); font-size: 14px; margin-left: 4px; }

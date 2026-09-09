@@ -49,12 +49,13 @@ export const PRODUCTS = [
     status: 'live',
   },
   {
-    id: 'moon-chronicle',
-    kicker: '研发中',
-    title: '月球纪元',
-    desc: '把同一套程序化管线搬到月球：大碰撞、月海玄武岩喷发、陨击历史与阿波罗着陆点。',
+    id: 'moon-mode',
+    kicker: '地球纪元 · 新视角',
+    title: '月球',
+    desc: '同一条时间轴下的月球史：忒伊亚大碰撞、岩浆洋、晚期重轰击、月海喷发、逐渐远离地球，直到阿波罗与嫦娥的着陆点一一亮起。作为地球纪元的第四个模式上线。',
     emoji: '🌙',
     accent: '#7a86a8',
+    url: 'https://rory-sun.github.io/earth-chronicle/?mode=moon',
     status: 'soon',
   },
   {
