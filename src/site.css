@@ -262,6 +262,14 @@ h1 em { font-style: normal; color: transparent; background: var(--h1-grad); -web
 @media (max-width: 560px) { .pipeline { grid-template-columns: 1fr; } .hero-stats { gap: 20px; } }
 
 /* ---------------- data-driven showcase ---------------- */
+/* Each product carries its own --accent-raw (set inline from products.js). The per-product accent
+   is used for the eyebrow, feature icons and the ambient wash. Raw values are picked to sing on the
+   dark ground, which leaves them too light for 12px text on the light theme (#3d8ee6 is only 3.2:1
+   on #f3f5fa), so the light theme derives a darkened accent instead of using the raw value. */
+.showcase, .card, .demo-poster.placeholder { --accent: var(--accent-raw, #6cb4ff); }
+:root[data-theme="light"] .showcase,
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .demo-poster.placeholder { --accent: color-mix(in srgb, var(--accent-raw, #6cb4ff) 68%, #000); }
 .product-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: -14px 0 34px; }
 .product-tabs a, .product-tabs .tab-soon { font-size: 13px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--pill-text); }
 .product-tabs a:hover { background: var(--accent-soft); }

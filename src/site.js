@@ -10,22 +10,24 @@ import './globe.js';
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function posterHTML(p) {
   if (p.poster) return `<img class="demo-poster" src="${esc(p.poster)}" alt="${esc(p.title)} 预览" loading="lazy" decoding="async" />`;
-  return `<div class="demo-poster placeholder" style="--accent:${esc(p.accent || '#3d8ee6')}"><span class="ph-emoji">${p.emoji || '✦'}</span><span class="ph-title">${esc(p.title)}</span></div>`;
+  return `<div class="demo-poster placeholder" style="--accent-raw:${esc(p.accent || '#3d8ee6')}"><span class="ph-emoji">${p.emoji || '✦'}</span><span class="ph-title">${esc(p.title)}</span></div>`;
 }
 function showcaseHTML(p, i) {
   const tags = (p.tags || []).map((t) => `<span class="pill">${esc(t)}</span>`).join('');
   const feats = (p.features || []).map((f) => `<li><span class="feature-icon">${f.icon || '✦'}</span><b>${esc(f.title)}</b><span>${esc(f.text)}</span></li>`).join('');
   // a url starting with '#' is a placeholder: the project is not published yet
   const placeholder = !p.url || p.url.startsWith('#');
+  // demoNote overrides the default line under the launch button (e.g. why a project has no embed)
+  const hint = (t) => `<div class="demo-hint">${esc(t)}</div>`;
   const embedBtn = p.embed
-    ? `<button class="btn primary big" data-launch="${esc(p.id)}">▶ 启动交互演示</button><div class="demo-hint">在本页内直接运行 · 建议使用桌面浏览器</div>`
+    ? `<button class="btn primary big" data-launch="${esc(p.id)}">▶ 启动交互演示</button>${hint(p.demoNote || '在本页内直接运行 · 建议使用桌面浏览器')}`
     : placeholder
-      ? `<span class="btn ghost big disabled">在线演示即将上线</span><div class="demo-hint">项目已完成，正在准备公网部署</div>`
-      : `<a class="btn primary big" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>`;
+      ? `<span class="btn ghost big disabled">在线演示即将上线</span>${hint(p.demoNote || '项目已完成，正在准备公网部署')}`
+      : `<a class="btn primary big" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>${p.demoNote ? hint(p.demoNote) : ''}`;
   const openLink = placeholder ? '' : `<a class="btn primary" href="${esc(p.url)}" target="_blank" rel="noopener">打开完整版 ↗</a>`;
   const fullLink = placeholder ? '' : `<a class="demo-fullscreen" href="${esc(p.url)}" target="_blank" rel="noopener" title="在新标签页打开完整版">全屏打开 ↗</a>`;
   return `
-  <article class="showcase reveal" id="${esc(p.id)}" style="--accent:${esc(p.accent || '#3d8ee6')}">
+  <article class="showcase reveal" id="${esc(p.id)}" style="--accent-raw:${esc(p.accent || '#3d8ee6')}">
     <header class="showcase-head">
       <div>
         <div class="eyebrow">${String(i + 1).padStart(2, '0')} · ${esc(p.kicker || '')}</div>
@@ -47,7 +49,7 @@ function showcaseHTML(p, i) {
 function soonHTML(p) {
   // small card; with a url it becomes a link (e.g. a new mode inside an existing product)
   const inner = `<div class="card-thumb placeholder"><span>${p.emoji || '✦'}</span></div><div class="card-body"><div class="eyebrow">${esc(p.kicker || '研发中')}</div><h3>${esc(p.title)}${p.url ? ' <span class="card-arrow">↗</span>' : ''}</h3><p>${esc(p.desc)}</p></div>`;
-  const style = `style="--accent:${esc(p.accent || '#3d8ee6')}"`;
+  const style = `style="--accent-raw:${esc(p.accent || '#3d8ee6')}"`;
   return p.url
     ? `<a class="card reveal card-link" href="${esc(p.url)}" target="_blank" rel="noopener" ${style}>${inner}</a>`
     : `<article class="card soon reveal" ${style}>${inner}</article>`;

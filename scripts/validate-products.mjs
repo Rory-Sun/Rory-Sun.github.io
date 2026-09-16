@@ -53,9 +53,9 @@ export function validateProducts(products, { publicDir } = {}) {
         if (!f || !isStr(f.title) || !isStr(f.text)) err(p, i, `features[${j}] needs title and text`);
       });
     }
-    for (const k of ['kicker', 'subtitle', 'emoji']) if (p[k] !== undefined && !isStr(p[k])) err(p, i, `${k} must be a non-empty string`);
+    for (const k of ['kicker', 'subtitle', 'emoji', 'demoNote']) if (p[k] !== undefined && !isStr(p[k])) err(p, i, `${k} must be a non-empty string`);
 
-    const known = new Set(['id', 'kicker', 'title', 'subtitle', 'desc', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'features', 'status']);
+    const known = new Set(['id', 'kicker', 'title', 'subtitle', 'desc', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status']);
     for (const k of Object.keys(p)) if (!known.has(k)) err(p, i, `unknown field "${k}" (typo?)`);
   });
   if (!products.some((p) => p && p.status === 'live')) errors.push('at least one product must be live');

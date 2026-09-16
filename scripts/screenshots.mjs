@@ -57,8 +57,11 @@ try {
         const step = innerHeight * 0.8;
         for (let y = 0; y < document.documentElement.scrollHeight; y += step) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
         scrollTo(0, 0);
-        await Promise.all([...document.images].filter((i) => !i.complete).map((i) => new Promise((r) => { i.onload = i.onerror = r; })));
+        // decode() resolves only once the bitmap is ready to paint; `complete` alone can still
+        // screenshot as a blank frame
+        await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
       });
+      await page.waitForTimeout(600);
       /* eslint-enable no-undef */
       // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site
       const file = path.join(out, `${name}-${theme}.png`);

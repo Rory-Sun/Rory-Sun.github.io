@@ -6,3 +6,5 @@ Thumbs.db
 screenshots/
 .lighthouseci/
 debug.log
+*-tmp.mjs
+*-tmp.js

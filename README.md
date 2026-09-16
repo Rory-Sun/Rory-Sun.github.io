@@ -4,7 +4,10 @@
 
 数据驱动的作品展示页（`src/products.js` 每条记录生成一个产品区块，同时生成页面里的 JSON-LD 结构化数据）。产品本体各自独立部署：
 
+展示顺序即叙事顺序，尺度层层收缩：
+
 - 地球纪元 · Earth Chronicle → 仓库 `Rory-Sun/earth-chronicle`，https://rory-sun.github.io/earth-chronicle/
+- 人体 · 一日 → 仓库 `Rory-Sun/blender-designer`，https://rory-sun.github.io/blender-designer/anatomy/
 - 溪畔秋日 → 仓库 `Rory-Sun/blender-designer`，https://rory-sun.github.io/blender-designer/
 
 ## 开发
@@ -23,6 +26,8 @@ npm run check        # 推送前跑一次：校验产品数据 → ESLint → �
 
 在 `src/products.js` 里加一条记录即可，字段说明见文件头部注释。构建时会校验：`id` 必须是唯一的小写短横线 slug，`status` 只能是 `live` 或 `soon`，`live` 的作品必须有 `url`，本地 `poster` 路径必须真实存在于 `public/`，拼错的字段名会被指出。校验失败时 `npm run build` 直接报错，部署不会进行。
 
+不是每个作品都适合页内嵌入。资源太重或界面太密的项目留空 `embed`，只给「打开项目」按钮，并用 `demoNote` 写明原因（例如「人体 · 一日」的解剖模型约 28MB）。
+
 ## 持续集成
 
 - **Deploy**（`.github/workflows/deploy.yml`）：推送到 `main` 后运行 `npm run check` 并发布到 GitHub Pages。
@@ -36,4 +41,10 @@ npm run check        # 推送前跑一次：校验产品数据 → ESLint → �
 
 ## 分享卡片
 
-`public/site/og.jpg`（1200×630）是社交平台抓取的预览图。改标语后需要重新生成这张图。
+`public/site/og.jpg`（1200×630）是社交平台抓取的预览图。改标语或增删作品后重新生成：
+
+```bash
+python scripts/make-og.py
+```
+
+文案与作品标签在该脚本顶部的常量里。

@@ -40,6 +40,12 @@ npm run build && npm run screenshots
 - 所有动效在 `prefers-reduced-motion: reduce` 下必须退化。
 - Lighthouse 的性能分在 CI 里因为没有 GPU 而偏低，这部分可以忽略；可访问性、最佳实践、SEO 三项必须保持全绿。
 
+### 截图脚本的坑
+
+`npm run screenshots` 必须在 `npm run build` **之后**跑，否则拍的是上一次的构建产物。判断方法：比较 `dist/` 和 `screenshots/` 的时间戳，或者看整页高度对不对。
+
+海报是懒加载的，只等 `img.complete` 会拍到黑框，必须等 `img.decode()`。
+
 ## 已知的待办候选
 
 按优先级排列，每次复审时重新评估：
