@@ -61,6 +61,9 @@ try {
         // screenshot as a blank frame
         await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
       });
+      // the scroll above pauses the globe's render loop (it observes visibility); give it two frames
+      // back at the top so the WebGL buffer holds a fresh frame before the capture
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
       await page.waitForTimeout(600);
       /* eslint-enable no-undef */
       // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site

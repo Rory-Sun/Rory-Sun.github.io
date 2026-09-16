@@ -83,7 +83,10 @@ async function start() {
 
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+    // preserveDrawingBuffer keeps the last frame readable after compositing. Without it the canvas
+    // reads back empty whenever a capture lands between renders - which is exactly what happens once
+    // the render loop has paused off-screen, and it silently blanked the globe in every screenshot.
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power', preserveDrawingBuffer: true });
   } catch { return; }
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
@@ -131,8 +134,15 @@ async function start() {
     camera.aspect = 1;
     camera.updateProjectionMatrix();
     needsRender = true;
+    // resizing clears the buffer; paint immediately so it is never left empty while the loop is idle
+    renderer.render(scene, camera);
   }
   new ResizeObserver(resize).observe(orb);
+
+  // A lost GL context (driver reset, tab backgrounded for a long time) would otherwise leave a hole:
+  // the poster has already faded out and nothing repaints it. Fall back to the poster, then recover.
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); orb.classList.remove('ready'); });
+  canvas.addEventListener('webglcontextrestored', () => { resize(); orb.classList.add('ready'); });
 
   // ---- interaction: drag to rotate, with inertia
   let dragging = false, lastX = 0, lastY = 0, velX = 0, velY = 0, pitch = 0;
