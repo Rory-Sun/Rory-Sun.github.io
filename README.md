@@ -30,6 +30,10 @@ npm run check        # 推送前跑一次：校验产品数据 → ESLint → �
   - Lighthouse：对构建产物打分，阈值在 `lighthouserc.json`（可访问性、最佳实践、SEO 低于门槛即失败，性能只警告）；报告链接在 job 日志里。
   - Screenshots：六张整页截图作为构建产物上传，在 Actions 运行页的 Artifacts 面板下载。
 
+## 设计复审
+
+每两天一次的界面复审流程与检查清单见 [docs/design-review.md](docs/design-review.md)，包含中文排版的硬性规则和待办候选。
+
 ## 分享卡片
 
 `public/site/og.jpg`（1200×630）是社交平台抓取的预览图。改标语后需要重新生成这张图。
