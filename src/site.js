@@ -19,8 +19,13 @@ function showcaseHTML(p, i) {
   const placeholder = !p.url || p.url.startsWith('#');
   // demoNote overrides the default line under the launch button (e.g. why a project has no embed)
   const hint = (t) => `<div class="demo-hint">${esc(t)}</div>`;
+  // On a phone the frame is only ~316x178, far too small for these WebGL apps, so the in-page launch
+  // is swapped for a direct link below 720px (CSS decides, so it survives rotation and resizing).
   const embedBtn = p.embed
-    ? `<button class="btn primary big" data-launch="${esc(p.id)}">▶ 启动交互演示</button>${hint(p.demoNote || '在本页内直接运行 · 建议使用桌面浏览器')}`
+    ? `<button class="btn primary big demo-launch" data-launch="${esc(p.id)}">▶ 启动交互演示</button>`
+      + `<a class="btn primary big demo-open-sm" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>`
+      + `<div class="demo-hint demo-hint-lg">${esc(p.demoNote || '在本页内直接运行 · 建议使用桌面浏览器')}</div>`
+      + `<div class="demo-hint demo-hint-sm">手机屏幕放不下这个界面 · 在新标签页全屏体验</div>`
     : placeholder
       ? `<span class="btn ghost big disabled">在线演示即将上线</span>${hint(p.demoNote || '项目已完成，正在准备公网部署')}`
       : `<a class="btn primary big" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>${p.demoNote ? hint(p.demoNote) : ''}`;
@@ -84,6 +89,9 @@ function launchDemo(id) {
     frame.classList.remove('loading');
     frame.classList.add('live');
     status.remove();
+    // the launch button has just been removed from the page; without this the keyboard focus falls
+    // back to <body> and the next Tab starts over from the top of the document
+    iframe.focus({ preventScroll: true });
   });
   frame.appendChild(iframe);
   frame.scrollIntoView({ behavior: 'smooth', block: 'center' });

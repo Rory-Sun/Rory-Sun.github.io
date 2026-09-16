@@ -63,12 +63,17 @@ try {
       });
       // the scroll above pauses the globe's render loop (it observes visibility); give it two frames
       // back at the top so the WebGL buffer holds a fresh frame before the capture
-      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      await page.evaluate(() => Promise.race([
+        new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+        new Promise((r) => setTimeout(r, 2000)),
+      ]));
       await page.waitForTimeout(600);
       /* eslint-enable no-undef */
-      // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site
+      // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site.
+      // The page is ~7000px tall and the hero canvas now keeps its drawing buffer, so the default
+      // 30s screenshot timeout is not always enough on a software renderer.
       const file = path.join(out, `${name}-${theme}.png`);
-      await page.screenshot({ path: file, fullPage: true });
+      await page.screenshot({ path: file, fullPage: true, animations: 'disabled', timeout: 120_000 });
       console.log(`✔ ${path.relative(root, file)} (${viewport.width}x${viewport.height}, ${theme})`);
       await ctx.close();
     }
