@@ -83,8 +83,10 @@ export const PRODUCTS = [
     scale: '一个下午',
     source: 'Blender 程序化场景',
     size: '三维山村 · 环境声景',
-    specs: [['尺度', '一个秋天的下午'], ['场景', 'Blender 程序化建模'], ['交互', '可点击热点 · 环绕镜头'], ['声音', '随位置变化的声景']],
-    stages: { data: 0, blender: 2, realtime: 2, story: 1 },
+    specs: [['尺度', '一个秋天的下午'], ['场景', 'Blender 程序化建模'], ['素材', 'Poly Haven CC0 实景扫描'], ['交互', '4 个预设视角 · 可点击热点'], ['声音', 'Web Audio 实时合成']],
+    // data = 1: textures and plant/rock models are fetched from Poly Haven (CC0) with sources and
+    // licences tracked in web/assets/sources.json — a real sourcing pipeline, but not scientific data
+    stages: { data: 1, blender: 2, realtime: 2, story: 1 },
     tags: ['三维场景', '环境音效', '点击互动', '氛围叙事'],
     poster: '/site/autumn_creek_1200.webp',   // self-hosted 1200px copy of blender-designer/preview-desktop.png
     accent: '#3f7a4a',
@@ -94,7 +96,7 @@ export const PRODUCTS = [
     features: [
       { icon: '🏞️', title: '自由环绕', text: '拖动镜头在山村间环绕，秋色随视角变化，溪水在脚下流过。' },
       { icon: '🐕', title: '可点击的世界', text: '石桥、稻田与小狗都能触发互动与声音，细节里藏着惊喜。' },
-      { icon: '🎧', title: '声音景观', text: '溪水与鸟鸣随位置变化，营造缓慢、安静的沉浸感。' },
+      { icon: '🎧', title: '合成声景', text: '溪流与鸟鸣不是录音，而是用 Web Audio 在浏览器里实时合成；点击溪水会泛起涟漪，并发出一声水响。' },
     ],
     status: 'live',
   },
