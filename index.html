@@ -29,6 +29,7 @@
   <meta name="twitter:image" content="https://rory-sun.github.io/site/og.jpg" />
   <meta name="twitter:image:alt" content="RORY.studio：创意技术与三维可视化，配一颗三维渲染的地球" />
 
+  <link rel="alternate" type="application/atom+xml" title="RORY.studio · 观测日志" href="/feed.xml" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231b4f9c'/%3E%3Cpath d='M9 10c3-2 6 0 8 2s5 1 6-1 1 5-2 7-6 0-7-2-4-1-6 0-1-4 1-6z' fill='%2360a35a'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/src/site.css" />
 </head>
@@ -43,7 +44,8 @@
       <a href="#works"><b>02</b>作品</a>
       <a href="#file"><b>03</b>档案</a>
       <a href="#pipe"><b>04</b>管线</a>
-      <a href="#contact"><b>05</b>联络</a>
+      <a href="#log"><b>05</b>日志</a>
+      <a href="#contact"><b>06</b>联络</a>
     </nav>
     <div class="nav-actions">
       <div class="clock"><span class="clock-zone">苏州 UTC+8</span> <time id="clock">--:--:--</time></div>
@@ -66,7 +68,7 @@
     <section id="obs" class="hero" data-sector="01 观测">
       <div class="sweep" aria-hidden="true"></div>
       <div class="hero-text">
-        <div class="status"><span class="ok">链路就绪</span><span>苏州</span><span>观测目标 <span id="target-count">03</span></span></div>
+        <div class="status"><span class="ok">链路就绪</span><span>苏州</span><span>观测目标 <span id="target-count">03</span></span><span>最近同步 <time id="last-sync">--</time></span></div>
         <h1><span class="nb">我把复杂的数据与故事，</span><br /><span class="nb">做成可以<em>亲手转动</em>的世界。</span></h1>
         <p class="lede">用 Blender、Three.js 与自写着色器，把地质、解剖与自然的数据做成可以亲手转动的世界。目前有<span class="nb">三件作品</span>：<span class="nb">一颗回放 46 亿年的地球</span>、<span class="nb">一具随一天变化的人体</span>、<span class="nb">一座可以慢下来的山村</span>。</p>
         <div class="actions">
@@ -162,9 +164,17 @@
       <div class="legend" aria-hidden="true"><span><i class="dot on"></i>核心环节</span><span><i class="dot part"></i>部分使用</span><span><i class="dot off"></i>未使用</span></div>
     </section>
 
-    <!-- ============ 05 联络 ============ -->
-    <section id="contact" data-sector="05 联络">
-      <div class="sec-head"><div class="sec-idx">05</div><h2>建立联络</h2><div class="sec-tag">接受合作</div></div>
+    <!-- ============ 05 日志 ============ -->
+    <section id="log" data-sector="05 日志">
+      <div class="sec-head"><div class="sec-idx">05</div><h2>观测日志</h2><div class="sec-tag"><span id="log-count"></span> · <a href="/feed.xml">订阅 Atom ↗</a></div></div>
+      <div class="log-filter" id="log-filter" role="group" aria-label="按作品筛选日志"></div>
+      <ol class="log" id="log-list" aria-live="polite"></ol>
+      <div class="log-more"><button class="btn" id="log-more" type="button" aria-controls="log-list" aria-expanded="false" hidden></button></div>
+    </section>
+
+    <!-- ============ 06 联络 ============ -->
+    <section id="contact" data-sector="06 联络">
+      <div class="sec-head"><div class="sec-idx">06</div><h2>建立联络</h2><div class="sec-tag">接受合作</div></div>
       <p class="contact-lede">想把你的数据变成一个可以转动的世界？</p>
       <p class="contact-sub">接受科普展陈、数据可视化与交互装置项目的合作。</p>
       <div class="term frame">

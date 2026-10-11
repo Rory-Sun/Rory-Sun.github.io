@@ -77,14 +77,39 @@ export function validateProducts(products, { publicDir } = {}) {
   return errors;
 }
 
+// Validates src/updates.js (the 观测日志): real calendar dates, newest first, targets that exist.
+export function validateUpdates(updates, products) {
+  const errors = [];
+  if (!Array.isArray(updates)) return ['UPDATES must be an array'];
+  const ids = new Set((products || []).map((p) => p && p.id));
+  const known = new Set(['date', 'target', 'title', 'text', 'url']);
+  updates.forEach((u, i) => {
+    const err = (msg) => errors.push(`updates[${i}]${u && u.title ? ` (${u.title})` : ''}: ${msg}`);
+    if (!u || typeof u !== 'object') return err('entry must be an object');
+    const m = isStr(u.date) && /^(\d{4})-(\d{2})-(\d{2})$/.exec(u.date);
+    const real = m && (() => { const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3]; })();
+    if (!real) err(`date must be a real YYYY-MM-DD, got ${JSON.stringify(u.date)}`);
+    if (!(u.target === 'site' || ids.has(u.target))) err(`target must be 'site' or a product id, got ${JSON.stringify(u.target)}`);
+    if (!isStr(u.title)) err('title is required');
+    if (!isStr(u.text)) err('text is required');
+    if (u.url !== undefined && !(isStr(u.url) && isHttp(u.url))) err('url must be an http(s) URL');
+    for (const k of Object.keys(u)) if (!known.has(k)) err(`unknown field "${k}" (typo?)`);
+    if (i > 0 && isStr(u.date) && isStr(updates[i - 1]?.date) && u.date > updates[i - 1].date) err(`entries must be newest first: ${u.date} comes after ${updates[i - 1].date}`);
+  });
+  return errors;
+}
+
 // ---- CLI
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const { PRODUCTS } = await import(path.join(root, 'src/products.js').replace(/\\/g, '/').replace(/^([A-Za-z]):/, 'file:///$1:'));
+  const url = (f) => path.join(root, f).replace(/\\/g, '/').replace(/^([A-Za-z]):/, 'file:///$1:');
+  const { PRODUCTS } = await import(url('src/products.js'));
+  const { UPDATES } = await import(url('src/updates.js'));
   const errors = validateProducts(PRODUCTS, { publicDir: path.join(root, 'public') });
-  if (errors.length) {
-    console.error(`✖ products.js has ${errors.length} problem(s):\n  - ${errors.join('\n  - ')}`);
-    process.exit(1);
-  }
+  const uErrors = validateUpdates(UPDATES, PRODUCTS);
+  if (errors.length) console.error(`✖ products.js has ${errors.length} problem(s):\n  - ${errors.join('\n  - ')}`);
+  if (uErrors.length) console.error(`✖ updates.js has ${uErrors.length} problem(s):\n  - ${uErrors.join('\n  - ')}`);
+  if (errors.length || uErrors.length) process.exit(1);
   console.log(`✔ products.js: ${PRODUCTS.length} records valid (${PRODUCTS.filter((p) => p.status === 'live').length} live)`);
+  console.log(`✔ updates.js: ${UPDATES.length} entries valid (latest ${UPDATES[0]?.date})`);
 }

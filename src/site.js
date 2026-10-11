@@ -13,6 +13,7 @@ import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-sans/latin-600.css';
 
 import { PRODUCTS } from './products.js';
+import { UPDATES } from './updates.js';
 import './theme.js';
 import './nav.js';
 import './hud.js';
@@ -171,3 +172,56 @@ if (fromHash >= 0) {
 const mark = (v) => `<span class="dot ${['off', 'part', 'on'][v ?? 0]}" role="img" aria-label="${['未使用', '部分使用', '核心环节'][v ?? 0]}"></span>`;
 document.getElementById('matrix-body').innerHTML = live.filter((p) => p.stages).map((p) => `
   <tr><td>${esc(shortTitle(p))}</td><td>${mark(p.stages.data)}</td><td>${mark(p.stages.blender)}</td><td>${mark(p.stages.realtime)}</td><td>${mark(p.stages.story)}</td></tr>`).join('');
+
+// ---- 观测日志: newest first, filterable by work, the oldest entries folded behind a button
+const LOG_FOLD = 6;
+const logList = document.getElementById('log-list');
+const logMore = document.getElementById('log-more');
+const logFilter = document.getElementById('log-filter');
+const byId = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
+const targetLabel = (t) => (t === 'site' ? { code: 'SYS', name: '主页', accent: '' } : { code: byId[t]?.code || '', name: shortTitle(byId[t] || { title: t }), accent: byId[t]?.accent || '' });
+let logTarget = 'all', logExpanded = false;
+
+document.getElementById('log-count').textContent = `${UPDATES.length} 条记录`;
+const lastSync = document.getElementById('last-sync');
+if (lastSync && UPDATES[0]) { lastSync.dateTime = UPDATES[0].date; lastSync.textContent = UPDATES[0].date.slice(5); }
+
+const targets = ['all', 'site', ...live.map((p) => p.id)].filter((t) => t === 'all' || UPDATES.some((u) => u.target === t));
+logFilter.innerHTML = targets.map((t) => {
+  const n = t === 'all' ? UPDATES.length : UPDATES.filter((u) => u.target === t).length;
+  const label = t === 'all' ? '全部' : targetLabel(t).name;
+  return `<button type="button" class="log-chip" data-target="${t}" aria-pressed="${t === 'all'}">${esc(label)} <span>${n}</span></button>`;
+}).join('');
+
+function renderLog() {
+  const items = UPDATES.filter((u) => logTarget === 'all' || u.target === logTarget);
+  const fold = logTarget === 'all' && !logExpanded && items.length > LOG_FOLD;
+  const shown = fold ? items.slice(0, LOG_FOLD) : items;
+  logList.innerHTML = shown.map((u, i) => {
+    const t = targetLabel(u.target);
+    const sameDay = i > 0 && shown[i - 1].date === u.date;
+    return `<li class="log-row${sameDay ? ' same-day' : ''}">
+      <time class="log-date" datetime="${u.date}">${u.date}</time>
+      <span class="log-tgt"${t.accent ? ` style="--accent-raw:${esc(t.accent)}"` : ''}><i aria-hidden="true"></i>${esc(t.code)} · ${esc(t.name)}</span>
+      <div class="log-body"><b>${esc(u.title)}</b><p>${esc(u.text)}</p></div>
+      ${u.url ? `<a class="log-go" href="${esc(u.url)}" target="_blank" rel="noopener" aria-label="查看：${esc(t.name)} · ${esc(u.title)}">查看 ↗</a>` : '<span></span>'}
+    </li>`;
+  }).join('');
+  const hidden = items.length - shown.length;
+  logMore.hidden = !(logTarget === 'all' && items.length > LOG_FOLD);
+  logMore.textContent = fold ? `展开更早的 ${hidden} 条` : '收起';
+  logMore.setAttribute('aria-expanded', String(!fold));
+}
+logFilter.addEventListener('click', (e) => {
+  const b = e.target.closest('.log-chip');
+  if (!b) return;
+  logTarget = b.dataset.target;
+  logFilter.querySelectorAll('.log-chip').forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+  renderLog();
+});
+logMore.addEventListener('click', () => {
+  logExpanded = !logExpanded;
+  renderLog();
+  if (!logExpanded) document.getElementById('log').scrollIntoView({ block: 'start' });
+});
+renderLog();

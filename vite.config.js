@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { PRODUCTS } from './src/products.js';
-import { validateProducts } from './scripts/validate-products.mjs';
+import { UPDATES } from './src/updates.js';
+import { validateProducts, validateUpdates } from './scripts/validate-products.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
@@ -65,16 +67,50 @@ function structuredData() {
   return JSON.stringify({ '@context': 'https://schema.org', '@graph': [site, page, person, ...works] }).replace(/</g, '\\u003c');
 }
 
+// Atom feed of the 观测日志 (src/updates.js) so the site can be followed in a feed reader.
+// Entry ids hash date + target + title, so they stay stable as long as the entry is not reworded.
+const xmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function atomFeed() {
+  const nameOf = (id) => (id === 'site' ? 'RORY.studio' : (PRODUCTS.find((p) => p.id === id)?.title || id).split(' · ')[0]);
+  const stamp = (d) => `${d}T12:00:00+08:00`;
+  const entries = UPDATES.map((u) => {
+    const hash = createHash('sha1').update(`${u.date}|${u.target}|${u.title}`).digest('hex').slice(0, 12);
+    const title = `${nameOf(u.target)} · ${u.title}`;
+    return `  <entry>
+    <id>tag:rory-sun.github.io,${u.date}:log/${hash}</id>
+    <title>${xmlEsc(title)}</title>
+    <updated>${stamp(u.date)}</updated>
+    <link rel="alternate" href="${xmlEsc(u.url || `${SITE}#log`)}"/>
+    <summary type="text">${xmlEsc(u.text)}</summary>
+  </entry>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
+  <id>${SITE}</id>
+  <title>RORY.studio · 观测日志</title>
+  <subtitle>Rory 的个人主页与三件交互式三维作品的更新记录</subtitle>
+  <link rel="self" href="${SITE}feed.xml"/>
+  <link rel="alternate" href="${SITE}#log"/>
+  <author><name>Rory</name><uri>${SITE}</uri></author>
+  <updated>${stamp(UPDATES[0]?.date || '2026-01-01')}</updated>
+${entries}
+</feed>
+`;
+}
+
 function seoPlugin() {
   let isBuild = false;
   return {
     name: 'rory-seo',
     configResolved(config) { isBuild = config.command === 'build'; },
-    // fail the production build (and warn loudly in dev) when a product record is malformed
+    // fail the production build (and warn loudly in dev) when a product record or log entry is malformed
     buildStart() {
-      const errors = validateProducts(PRODUCTS, { publicDir: path.join(ROOT, 'public') });
+      const errors = [
+        ...validateProducts(PRODUCTS, { publicDir: path.join(ROOT, 'public') }).map((e) => `products.js ${e}`),
+        ...validateUpdates(UPDATES, PRODUCTS).map((e) => `updates.js ${e}`),
+      ];
       if (!errors.length) return;
-      const msg = `products.js has ${errors.length} problem(s):\n  - ${errors.join('\n  - ')}`;
+      const msg = `${errors.length} data problem(s):\n  - ${errors.join('\n  - ')}`;
       if (isBuild) throw new Error(msg);
       console.warn(`\n[rory-seo] ${msg}\n`);
     },
@@ -82,9 +118,12 @@ function seoPlugin() {
       return [{ tag: 'script', attrs: { type: 'application/ld+json' }, children: structuredData(), injectTo: 'head' }];
     },
     generateBundle() {
-      const lastmod = new Date().toISOString().slice(0, 10);
+      // lastmod is the newest real update, not the build date: rebuilding without content changes
+      // should not tell crawlers the page changed
+      const lastmod = UPDATES[0]?.date || new Date().toISOString().slice(0, 10);
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${SITE}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>\n</urlset>\n`;
       this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: xml });
+      this.emitFile({ type: 'asset', fileName: 'feed.xml', source: atomFeed() });
     },
   };
 }
