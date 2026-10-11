@@ -197,10 +197,22 @@ async function start() {
     if (!needsRender) return;
     needsRender = false;
     renderer.render(scene, camera);
+    showTheta(now);
+  }
+
+  // the reticle's θ readout reports the real spin of the mesh, refreshed ~8 times a second
+  const thetaEl = document.getElementById('theta');
+  let thetaAt = 0;
+  function showTheta(now = performance.now(), force = false) {
+    if (!thetaEl || (!force && now - thetaAt < 120)) return;
+    thetaAt = now;
+    const deg = (((spin.rotation.y * 180) / Math.PI) % 360 + 360) % 360;
+    thetaEl.textContent = `${deg.toFixed(1).padStart(5, '0')}°`;
   }
 
   resize();
   renderer.render(scene, camera);
+  showTheta(performance.now(), true);
   orb.classList.add('ready');
   loop();
 }

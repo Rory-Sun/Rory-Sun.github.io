@@ -19,14 +19,14 @@ function structuredData() {
     url: SITE,
     email: 'mailto:sunzhiyang49@gmail.com',
     jobTitle: '创意技术 · 三维可视化',
-    description: '用 Blender、Three.js 与自写着色器构建沉浸式交互体验；把地质、考古与人口数据编成可以播放的时间轴。',
+    description: '在苏州工作的创意技术从业者，从业十年，接受合作。用 Blender、Three.js 与自写着色器构建沉浸式交互体验；把地质、解剖与自然的数据编成可以播放的时间轴。',
+    address: { '@type': 'PostalAddress', addressLocality: '苏州', addressCountry: 'CN' },
     sameAs: ['https://github.com/Rory-Sun'],
     knowsAbout: ['实时三维与着色器', 'Blender 程序化建模', '数据可视化叙事', '离线优先的 Web 应用', '科普与教育产品', 'Three.js', 'GLSL', 'Blender'],
   };
   const live = PRODUCTS.filter((p) => p.status !== 'soon' && p.url && !p.url.startsWith('#'));
-  const modes = PRODUCTS.filter((p) => p.status === 'soon' && p.url);
   const works = live.map((p) => {
-    const parts = modes.filter((m) => m.url.startsWith(p.url.split('?')[0]));
+    const parts = PRODUCTS.filter((m) => m.parent === p.id && m.url);
     return {
       '@type': 'WebApplication',
       '@id': `${SITE}#${p.id}`,

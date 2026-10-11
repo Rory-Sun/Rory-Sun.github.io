@@ -53,9 +53,24 @@ export function validateProducts(products, { publicDir } = {}) {
         if (!f || !isStr(f.title) || !isStr(f.text)) err(p, i, `features[${j}] needs title and text`);
       });
     }
-    for (const k of ['kicker', 'subtitle', 'emoji', 'demoNote']) if (p[k] !== undefined && !isStr(p[k])) err(p, i, `${k} must be a non-empty string`);
+    for (const k of ['kicker', 'subtitle', 'emoji', 'demoNote', 'scale', 'source', 'size', 'blurb']) if (p[k] !== undefined && !isStr(p[k])) err(p, i, `${k} must be a non-empty string`);
 
-    const known = new Set(['id', 'kicker', 'title', 'subtitle', 'desc', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status']);
+    // mission-index fields
+    if (p.code !== undefined && !(isStr(p.code) && /^[A-Z]{2}-\d{2}(\.[A-Z])?$/.test(p.code))) err(p, i, `code must look like EC-01 or EC-01.M, got ${JSON.stringify(p.code)}`);
+    if (live) for (const k of ['code', 'scale', 'source', 'size']) if (!isStr(p[k])) err(p, i, `live products need ${k} (shown as a column in the mission index)`);
+    if (p.specs !== undefined && !(Array.isArray(p.specs) && p.specs.every((r) => Array.isArray(r) && r.length === 2 && r.every(isStr)))) err(p, i, 'specs must be an array of [label, value] string pairs');
+    if (p.stages !== undefined) {
+      const ok = p.stages && typeof p.stages === 'object' && ['data', 'blender', 'realtime', 'story'].every((k) => [0, 1, 2].includes(p.stages[k]));
+      if (!ok) err(p, i, 'stages must be { data, blender, realtime, story } with each value 0, 1 or 2');
+    }
+    if (p.parent !== undefined) {
+      const parent = products.find((q) => q && q.id === p.parent);
+      if (!parent) err(p, i, `parent "${p.parent}" does not match any product id`);
+      else if (parent.status !== 'live') err(p, i, `parent "${p.parent}" must be a live product`);
+      if (live) err(p, i, 'a live product cannot have a parent; modes are status "soon"');
+    }
+
+    const known = new Set(['id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
     for (const k of Object.keys(p)) if (!known.has(k)) err(p, i, `unknown field "${k}" (typo?)`);
   });
   if (!products.some((p) => p && p.status === 'live')) errors.push('at least one product must be live');

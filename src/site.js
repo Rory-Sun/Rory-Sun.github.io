@@ -1,110 +1,173 @@
-// Personal site: starfield background, scroll reveal, and a data-driven product showcase with on-demand embeds.
-import { PRODUCTS } from './products.js';
+// Personal site: observatory console. Renders the mission index, the selected work's screen and
+// dossier, and the pipeline coverage matrix from src/products.js; launches in-page demos on demand.
 
-import './stars.js';
+// self-hosted fonts (Google Fonts is unreachable from mainland China); Latin subsets only, CJK
+// falls back to the system face
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-500.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
+import '@fontsource/chakra-petch/latin-500.css';
+import '@fontsource/chakra-petch/latin-600.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+
+import { PRODUCTS } from './products.js';
 import './theme.js';
 import './nav.js';
+import './hud.js';
 import './globe.js';
 
-// ---- products (data-driven)
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-function posterHTML(p) {
-  if (p.poster) return `<img class="demo-poster" src="${esc(p.poster)}" alt="${esc(p.title)} 预览" loading="lazy" decoding="async" />`;
-  return `<div class="demo-poster placeholder" style="--accent-raw:${esc(p.accent || '#3d8ee6')}"><span class="ph-emoji">${p.emoji || '✦'}</span><span class="ph-title">${esc(p.title)}</span></div>`;
-}
-function showcaseHTML(p, i) {
-  const tags = (p.tags || []).map((t) => `<span class="pill">${esc(t)}</span>`).join('');
-  const feats = (p.features || []).map((f) => `<li><span class="feature-icon">${f.icon || '✦'}</span><b>${esc(f.title)}</b><span>${esc(f.text)}</span></li>`).join('');
-  // a url starting with '#' is a placeholder: the project is not published yet
-  const placeholder = !p.url || p.url.startsWith('#');
-  // demoNote overrides the default line under the launch button (e.g. why a project has no embed)
-  const hint = (t) => `<div class="demo-hint">${esc(t)}</div>`;
-  // On a phone the frame is only ~316x178, far too small for these WebGL apps, so the in-page launch
-  // is swapped for a direct link below 720px (CSS decides, so it survives rotation and resizing).
-  const embedBtn = p.embed
-    ? `<button class="btn primary big demo-launch" data-launch="${esc(p.id)}">▶ 启动交互演示</button>`
-      + `<a class="btn primary big demo-open-sm" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>`
-      + `<div class="demo-hint demo-hint-lg">${esc(p.demoNote || '在本页内直接运行 · 建议使用桌面浏览器')}</div>`
-      + `<div class="demo-hint demo-hint-sm">手机屏幕放不下这个界面 · 在新标签页全屏体验</div>`
-    : placeholder
-      ? `<span class="btn ghost big disabled">在线演示即将上线</span>${hint(p.demoNote || '项目已完成，正在准备公网部署')}`
-      : `<a class="btn primary big" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>${p.demoNote ? hint(p.demoNote) : ''}`;
-  const openLink = placeholder ? '' : `<a class="btn primary" href="${esc(p.url)}" target="_blank" rel="noopener">打开完整版 ↗</a>`;
-  const fullLink = placeholder ? '' : `<a class="demo-fullscreen" href="${esc(p.url)}" target="_blank" rel="noopener" title="在新标签页打开完整版">全屏打开 ↗</a>`;
-  return `
-  <article class="showcase reveal" id="${esc(p.id)}" style="--accent-raw:${esc(p.accent || '#3d8ee6')}">
-    <header class="showcase-head">
-      <div>
-        <div class="eyebrow">${String(i + 1).padStart(2, '0')} · ${esc(p.kicker || '')}</div>
-        <h3>${esc(p.title)}</h3>
-        ${p.subtitle ? `<div class="showcase-sub">${esc(p.subtitle)}</div>` : ''}
-      </div>
-      <div class="product-actions">${openLink}</div>
-    </header>
-    <p class="showcase-desc">${esc(p.desc)}</p>
-    <div class="demo-frame" data-frame="${esc(p.id)}">
-      ${posterHTML(p)}
-      <div class="demo-overlay">${embedBtn}</div>
-      ${fullLink}
-    </div>
-    <div class="product-meta"><div class="pill-row">${tags}</div></div>
-    ${feats ? `<ul class="feature-list">${feats}</ul>` : ''}
-  </article>`;
-}
-function soonHTML(p) {
-  // small card; with a url it becomes a link (e.g. a new mode inside an existing product)
-  const inner = `<div class="card-thumb placeholder"><span>${p.emoji || '✦'}</span></div><div class="card-body"><div class="eyebrow">${esc(p.kicker || '研发中')}</div><h3>${esc(p.title)}${p.url ? ' <span class="card-arrow">↗</span>' : ''}</h3><p>${esc(p.desc)}</p></div>`;
-  const style = `style="--accent-raw:${esc(p.accent || '#3d8ee6')}"`;
-  return p.url
-    ? `<a class="card reveal card-link" href="${esc(p.url)}" target="_blank" rel="noopener" ${style}>${inner}</a>`
-    : `<article class="card soon reveal" ${style}>${inner}</article>`;
-}
-const live = PRODUCTS.filter((p) => p.status !== 'soon');
-const soon = PRODUCTS.filter((p) => p.status === 'soon');
-document.getElementById('product-list').innerHTML = live.map(showcaseHTML).join('');
-document.getElementById('product-soon').innerHTML = soon.map(soonHTML).join('');
-document.getElementById('product-tabs').innerHTML = live.map((p) => `<a href="#${esc(p.id)}">${esc(p.title)}</a>`).join('') + (soon.filter((p) => !p.url).length ? `<span class="tab-soon">+ ${soon.filter((p) => !p.url).length} 个研发中</span>` : '');
+const live = PRODUCTS.filter((p) => p.status === 'live');
+const modesOf = (p) => PRODUCTS.filter((m) => m.parent === p.id && m.url);
+// 「地球纪元 · Earth Chronicle」splits into a Chinese name and a Latin name, but 「人体 · 一日」is one
+// Chinese name and must stay whole — only split when the part after the dot is Latin
+const titleParts = (p) => {
+  const [a, b] = p.title.split(' · ');
+  return b && /^[A-Za-z]/.test(b) ? [a, b] : [p.title, p.subtitle || ''];
+};
+const shortTitle = (p) => titleParts(p)[0];
+const enTitle = (p) => titleParts(p)[1];
 
+// ---- counters in the hero and section header
+const modeCount = PRODUCTS.filter((p) => p.parent).length;
+const pad = (n) => String(n).padStart(2, '0');
+for (const id of ['target-count', 'targets']) { const el = document.getElementById(id); if (el) el.textContent = pad(live.length); }
+const worksTag = document.getElementById('works-tag');
+if (worksTag) worksTag.textContent = `${live.length} 个目标 · ${modeCount} 个模式`;
+
+// ---- mission index
+const rowsEl = document.getElementById('ix-rows');
+rowsEl.innerHTML = live.map((p, i) => `
+  <button class="ix-row" type="button" data-i="${i}" aria-pressed="false" aria-controls="screen dossier" style="--accent-raw:${esc(p.accent || '#7cc4ff')}">
+    <span class="ix-code"><i aria-hidden="true"></i>${esc(p.code)}</span>
+    <span class="ix-name">${esc(shortTitle(p))}<small>${esc(enTitle(p))}</small></span>
+    <span class="ix-m c-scale">${esc(p.scale)}</span>
+    <span class="c-src">${esc(p.source)}</span>
+    <span class="ix-m c-size">${esc(p.size)}</span>
+    <span><span class="chip${p.embed ? '' : ' ext'}">${p.embed ? '页内试玩' : '新标签页'}</span></span>
+  </button>
+  ${modesOf(p).map((m) => `
+  <a class="ix-sub" href="${esc(m.url)}" target="_blank" rel="noopener">
+    <span class="ix-code">${esc(m.code || '')}</span>
+    <span><span class="tree" aria-hidden="true">└</span>模式 · <b>${esc(m.title)}</b> <span class="blurb">— ${esc(m.blurb || m.desc)}</span></span>
+    <span class="go">打开 ↗</span>
+  </a>`).join('')}
+`).join('');
+const rowButtons = [...rowsEl.querySelectorAll('.ix-row')];
+
+// ---- screen + dossier for the selected work
+const screen = document.getElementById('screen');
+const poster = document.getElementById('screen-poster');
+const dossier = document.getElementById('dossier');
+let current = -1;
+
+function resetScreen() {
+  screen.querySelectorAll('iframe, .demo-loading, .screen-close').forEach((el) => el.remove());
+  screen.classList.remove('live', 'loading');
+}
+
+function select(i, { focusRow = false } = {}) {
+  if (i === current) return;
+  current = i;
+  const p = live[i];
+  rowButtons.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+  if (focusRow) rowButtons[i].focus();
+  resetScreen();
+  screen.dataset.id = p.id;
+  poster.src = p.poster;
+  poster.alt = `${shortTitle(p)} 画面`;
+  document.getElementById('ov-code').textContent = p.code;
+  document.getElementById('ov-scale').textContent = `尺度 ${p.scale}`;
+
+  const hint = (cls, text) => `<p class="demo-hint ${cls}">${esc(text)}</p>`;
+  const launch = p.embed
+    ? `<button class="btn primary demo-launch" type="button" data-launch="${esc(p.id)}">▶ 启动演示</button>`
+      + `<a class="btn primary demo-open-sm" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>`
+      + `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">打开完整版 ↗</a>`
+    : `<a class="btn primary" href="${esc(p.url)}" target="_blank" rel="noopener">打开完整版 ↗</a>`;
+  const notes = p.embed
+    ? hint('demo-hint-lg', p.demoNote || '在本页的画面里直接运行 · 建议使用桌面浏览器') + hint('demo-hint-sm', '手机屏幕放不下这个界面 · 在新标签页全屏体验')
+    : hint('', p.demoNote || '在新标签页打开');
+
+  dossier.innerHTML = `
+    <div class="dossier-label">${esc(p.code)} · ${esc(p.kicker || '')}</div>
+    <h3>${esc(shortTitle(p))}<small>${esc(enTitle(p))}</small></h3>
+    <p class="dossier-desc">${esc(p.desc)}</p>
+    ${p.specs ? `<dl class="spec">${p.specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+    ${p.features ? `<ul class="feats">${p.features.map((f) => `<li><b>${esc(f.title)}</b>${esc(f.text)}</li>`).join('')}</ul>` : ''}
+    <div class="actions">${launch}</div>
+    ${notes}`;
+}
+
+rowsEl.addEventListener('click', (e) => {
+  const row = e.target.closest('.ix-row');
+  if (row) select(+row.dataset.i);
+});
+// arrow keys move the selection through the index like a list
+rowsEl.addEventListener('keydown', (e) => {
+  const row = e.target.closest('.ix-row');
+  if (!row || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+  e.preventDefault();
+  const i = +row.dataset.i, n = rowButtons.length;
+  const next = e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + n) % n;
+  select(next, { focusRow: true });
+});
+
+// ---- in-page demo inside the screen
 function launchDemo(id) {
-  const p = PRODUCTS.find((x) => x.id === id);
-  const frame = document.querySelector(`[data-frame="${id}"]`);
-  if (!p || !frame || frame.classList.contains('live') || frame.classList.contains('loading')) return;
-  // loading state: dim the poster and show a spinner until the iframe reports load;
-  // after a while also offer the full-version link in case the embed is blocked or slow
+  const p = live.find((x) => x.id === id);
+  if (!p || !p.embed) return;
+  if (screen.dataset.id !== id) select(live.indexOf(p));
+  if (screen.classList.contains('live') || screen.classList.contains('loading')) return;
+  // spinner over the dimmed poster until the iframe loads; after a while also offer the full
+  // version in case the embed is blocked or slow
   const status = document.createElement('div');
   status.className = 'demo-loading';
   status.setAttribute('role', 'status');
-  status.innerHTML = `<span class="spinner" aria-hidden="true"></span><span>正在加载 ${esc(p.title)}…</span><a href="${esc(p.url)}" target="_blank" rel="noopener">加载太慢？在新标签页打开 ↗</a>`;
-  frame.appendChild(status);
-  frame.classList.add('loading');
+  status.innerHTML = `<span class="spinner" aria-hidden="true"></span><span>正在载入 ${esc(shortTitle(p))}…</span><a href="${esc(p.url)}" target="_blank" rel="noopener">加载太慢？在新标签页打开 ↗</a>`;
+  screen.appendChild(status);
+  screen.classList.add('loading');
   const slow = setTimeout(() => status.classList.add('slow'), 6000);
+
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'screen-close';
+  close.textContent = '✕ 关闭演示';
+  close.addEventListener('click', () => { resetScreen(); dossier.querySelector('[data-launch]')?.focus(); });
 
   const iframe = document.createElement('iframe');
   iframe.src = p.embed;
-  iframe.title = p.title;
+  iframe.title = `${shortTitle(p)} 交互演示`;
   iframe.allow = 'fullscreen; autoplay';
-  iframe.loading = 'eager';
   iframe.addEventListener('load', () => {
     clearTimeout(slow);
-    frame.classList.remove('loading');
-    frame.classList.add('live');
+    screen.classList.remove('loading');
+    screen.classList.add('live');
     status.remove();
-    // the launch button has just been removed from the page; without this the keyboard focus falls
-    // back to <body> and the next Tab starts over from the top of the document
+    screen.appendChild(close);
+    // the launch button keeps existing, but move focus into the demo the user just asked for
     iframe.focus({ preventScroll: true });
   });
-  frame.appendChild(iframe);
-  frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  screen.appendChild(iframe);
+  screen.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-document.querySelectorAll('[data-launch]').forEach((b) => b.addEventListener('click', () => launchDemo(b.dataset.launch)));
-if (location.hash.startsWith('#demo-')) launchDemo(location.hash.slice(6));
+dossier.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-launch]');
+  if (b) launchDemo(b.dataset.launch);
+});
 
-// ---- scroll reveal (after products are rendered)
-// Browsers with scroll-driven animations handle .reveal purely in CSS (see site.css);
-// everything else falls back to an IntersectionObserver.
-if (!(window.CSS && CSS.supports('animation-timeline: view()'))) {
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+// initial selection: #<product-id> or #demo-<product-id> deep links still work
+const hash = location.hash.slice(1);
+const fromHash = live.findIndex((p) => p.id === hash || `demo-${p.id}` === hash);
+select(fromHash >= 0 ? fromHash : 0);
+if (fromHash >= 0) {
+  document.getElementById('works').scrollIntoView();
+  if (hash.startsWith('demo-')) launchDemo(live[fromHash].id);
 }
+
+// ---- pipeline coverage matrix
+const mark = (v) => `<span class="dot ${['off', 'part', 'on'][v ?? 0]}" role="img" aria-label="${['未使用', '部分使用', '核心环节'][v ?? 0]}"></span>`;
+document.getElementById('matrix-body').innerHTML = live.filter((p) => p.stages).map((p) => `
+  <tr><td>${esc(shortTitle(p))}</td><td>${mark(p.stages.data)}</td><td>${mark(p.stages.blender)}</td><td>${mark(p.stages.realtime)}</td><td>${mark(p.stages.story)}</td></tr>`).join('');
