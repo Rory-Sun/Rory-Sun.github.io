@@ -326,6 +326,8 @@ h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em
 .pipe { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; }
 .stage { padding: 20px 18px; }
 .stage:not(:last-child)::after { content: ""; position: absolute; top: 33px; right: -29px; width: 28px; height: 1px; background: var(--hair-2); }
+/* arrowhead at the end of each connector, so the stages read as a flow rather than a row of boxes */
+.stage:not(:last-child)::before { content: ""; position: absolute; top: 30px; right: -30px; z-index: 1; border: 3.5px solid transparent; border-left: 5px solid var(--hair-2); border-right: 0; }
 .stage-s { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; color: var(--amber); }
 .stage h3 { margin: 8px 0; font-size: 18px; font-weight: 600; }
 .stage p { font-size: 13.5px; color: var(--ink-2); line-height: 1.75; }
@@ -397,7 +399,7 @@ h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em
   .screen { min-height: 0; aspect-ratio: 16 / 10; }
   .dossier { border-left: 1px solid var(--hair); border-top: 0; }
   .pipe { grid-template-columns: 1fr 1fr; }
-  .stage:nth-child(2)::after { display: none; }
+  .stage:nth-child(2)::after, .stage:nth-child(2)::before { display: none; }
 }
 /* Six nav items need ~690px beside the brand and theme button, so the menu collapses below 800.
    Keep 800 in sync with the matchMedia query in src/nav.js. */
@@ -435,7 +437,7 @@ h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em
 }
 @media (max-width: 560px) {
   .pipe { grid-template-columns: 1fr; gap: 14px; }
-  .stage::after { display: none; }
+  .stage::after, .stage::before { display: none; }
   .telemetry b { font-size: 22px; }
   .telemetry li { padding: 12px; }
   .sheet .row { grid-template-columns: 1fr; gap: 2px; }
