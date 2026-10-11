@@ -34,6 +34,17 @@ export const PRODUCTS = [
     size: '50+ 迁徙路线 · 40 遗址',
     specs: [['尺度', '46 亿年 · 30 万年迁徙'], ['影像', 'NASA Blue Marble / Black Marble'], ['贴图', '4K / 8K 程序化烘焙'], ['依赖', '0 外部 API · 离线运行']],
     stages: { data: 2, blender: 2, realtime: 2, story: 2 },
+    // every number and claim below is traceable to the earth-chronicle repo (README, src/earth/Plates.js,
+    // src/app/Environment.js, src/earth/shaders.js, commit history)
+    breakdown: {
+      metrics: [['9', '块板块，各有关键帧'], ['76 × 19', '环境关键帧 × 参数'], ['12 × 4', '每像素大气采样']],
+      decisions: [
+        { title: '大陆漂移', problem: '46 亿年里大陆的形状和位置一直在变，却没有可以直接逐年使用的板块数据。', approach: '9 块板块各用「参考点移到某经纬度，再绕它扭转」的关键帧描述，以四元数插值。小板块在裂解前依附母板块，例如北美在 1.8 亿年前随非洲一起移动，超大陆因此能无缝拼合。', tradeoff: '这是面向可视化的近似复原，不是科学数据；应用和资料页都写明了这一点。' },
+        { title: '一颗地球，四十多亿年', problem: '同一颗地球要依次表现岩浆海、雪球地球、高海平面和植被出现。', approach: '把时间映射成 19 个环境参数（太阳亮度、海平面、冰盖纬度、植被、岩浆、云量、地月距离等）的 76 个分段线性关键帧；着色器只读这些参数，不为每个年代各做一套贴图。', tradeoff: '年代之间是插值过渡，不是逐年的物理模拟。' },
+        { title: '大气散射', problem: '贴一层蓝色光晕的大气，在晨昏线和远古的橙色天空下都会露馅。', approach: '光线步进的瑞利与米氏单次散射：视线方向每像素 12 次采样，朝太阳方向 4 次；地质年代的颜色引导瑞利散射，所以冥古宙的天空是橙色的。', tradeoff: '大气层厚度在视觉上放大了约 3 倍，否则在整颗星球的尺度上看不清。' },
+        { title: '完全离线', problem: '不想依赖任何在线地图、瓦片或字体服务，打开就能用。', approach: '海岸线来自随包附带的 Natural Earth 数据并栅格化；现代地球影像由脚本把 NASA 原图转成 4K/8K WebP，原图本身不进构建，产物从 266 MB 降到 40 MB。', tradeoff: '默认加载 4K 以照顾集成显卡，8K 需要在地址后加 ?hq=1。' },
+      ],
+    },
     tags: ['三维交互', '时间轴叙事', 'Blender 烘焙', '零 API', '离线运行'],
     poster: '/site/earth_preview_1200.webp',
     accent: '#3d8ee6',
@@ -58,6 +69,18 @@ export const PRODUCTS = [
     size: '2331 部件 · 7 系统',
     specs: [['尺度', '24 小时 · 4 种状态'], ['数据', 'Z-Anatomy / BodyParts3D'], ['部件', '2331 个 · 7 个系统'], ['载荷', '约 28 MB · 建议全屏']],
     stages: { data: 2, blender: 2, realtime: 2, story: 2 },
+    // sources: blender-designer anatomy/README.md, web/anatomy/assets/web-lod.json (summed),
+    // web/anatomy/parts.js and src.js comments
+    breakdown: {
+      metrics: [['2331', '个独立命名的部件'], ['685 万 → 192 万', '三角面，网页保留 28%'], ['26', '个结构组，一组一次绘制']],
+      decisions: [
+        { title: '真实网格太重', problem: 'Z-Anatomy 的原始网格对浏览器来说太重，但人体又不能用球体和胶囊去近似。', approach: '在 Blender 里保留完整精度的场景，另外生成网页用的简化版：26 个结构组原始约 685 万个三角面，网页版约 192 万；简化结果不写回完整模型。', tradeoff: '主模型仍有约 28 MB，第一次打开要等它下载完。' },
+        { title: '叠在一起的白雾', problem: '颅骨、胸廓和肺是半透明层层叠加的，每一层加一样的透明度，最后就是一团白雾。', approach: '运行时重新指定材质：正对镜头的地方更透明、轮廓处更实，叠起来是 X 光一样的轮廓。后处理改用 4 倍多重采样的渲染目标，细血管和骨骼边缘不再出现锯齿。', tradeoff: '浏览器里的材质与 Blender 场景里的不同，两边需要分别调。' },
+        { title: '展开而不切碎', problem: '把一个人展开成 2331 个部件，既不能切碎网格，也不能让坐标误差越积越多。', approach: '部件按系统批量绘制，每个系统一次绘制调用，每个部件整体平移；归位时偏移归零，再切回精细模型。部件网格约 54 MB，第一次点「展开」时才下载。', tradeoff: '展开状态下保持静止，器官动画只在组合状态下播放。' },
+        { title: '在 2331 个英文名里找东西', problem: '部件都是英文原名，绝大多数访客不会去搜「Femur」。', approach: '搜索只查目录，不下载网格；支持「肾」「股骨」这类常见中文关键词和英文原名，点中结果后才按需加载、定位并高亮。', tradeoff: '还没有完整的中文解剖术语翻译，冷门部件仍要用英文搜。' },
+      ],
+      boundary: '这是教育用的解剖展示与动画样机，不是生理数字孪生；心率和呼吸是演示预设，器官比例与位置尚未经独立医学专家审查。',
+    },
     tags: ['真实解剖数据', '2331 个部件', '系统显隐', '一天时间轴', 'Blender 导出'],
     poster: '/site/human_atlas_1200.webp',
     accent: '#c98f4e',
@@ -87,6 +110,17 @@ export const PRODUCTS = [
     // data = 1: textures and plant/rock models are fetched from Poly Haven (CC0) with sources and
     // licences tracked in web/assets/sources.json — a real sourcing pipeline, but not scientific data
     stages: { data: 1, blender: 2, realtime: 2, story: 1 },
+    // sources: blender-designer web/README.md, web/assets/scene-info.json, web/src/{puppy-motion,
+    // water,vegetation,audio}.js
+    breakdown: {
+      metrics: [['442 → 10', '个场景对象 → 绘制批次'], ['75,050', '个顶点'], ['0', '段录音，声音全部实时合成']],
+      decisions: [
+        { title: '一整座山村的开销', problem: '溪流、稻田、瓦屋和树林加起来有几百个对象，逐个绘制在普通电脑上会卡。', approach: '导出的 442 个对象整理成 10 个绘制批次；近景草丛和蕨类用 Poly Haven 的 CC0 模型批量实例化；中景树木用实体树冠，只有最远处的雾中树林才用贴片。', tradeoff: '手机上会自动减少植被数量，降低反射与阴影精度。' },
+        { title: '小狗不像玩具', problem: '四条腿按固定节奏摆动的小狗，看起来像发条玩具在滑行。', approach: '按实际移动距离驱动步幅，脚掌固定在世界坐标里，用双关节反向动力学保持落点；站立时脚掌保持水平，不随小腿转动；还处理了转弯补步、加减速，以及间歇停下嗅闻。', tradeoff: '小狗网格由参考图生成，骨骼权重和步态是另外配置的；毛发靠模型与纹理表现，没有独立的毛发模拟。' },
+        { title: '水不是一层蓝色', problem: '给水面涂一层蓝色加反射，看起来像塑料。', approach: '按河道横向位置估算水深：浅处透出河床，深处吸收更多光；菲涅耳让贴地角度的反射更强；点击水面会泛起涟漪。', tradeoff: '这是估算，不是流体模拟。' },
+        { title: '没有一段录音', problem: '环境声如果用循环录音，几十秒后就能听出接缝。', approach: '用 Web Audio 实时合成：滤波后的噪声是流水，振荡器生成鸟鸣并随机间隔出现，点水时有一声水响；标签页隐藏时自动暂停。', tradeoff: '音量全局统一，不随镜头位置变化。' },
+      ],
+    },
     tags: ['三维场景', '环境音效', '点击互动', '氛围叙事'],
     poster: '/site/autumn_creek_1200.webp',   // self-hosted 1200px copy of blender-designer/preview-desktop.png
     accent: '#3f7a4a',

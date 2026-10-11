@@ -100,6 +100,28 @@ function select(i, { focusRow = false } = {}) {
     ${p.features ? `<ul class="feats">${p.features.map((f) => `<li><b>${esc(f.title)}</b>${esc(f.text)}</li>`).join('')}</ul>` : ''}
     <div class="actions">${launch}</div>
     ${notes}`;
+  renderBreakdown(p);
+}
+
+// ---- technical breakdown of the selected work: key numbers, then problem / approach / trade-off
+const breakdownEl = document.getElementById('breakdown');
+function renderBreakdown(p) {
+  const b = p.breakdown;
+  breakdownEl.hidden = !b;
+  if (!b) { breakdownEl.innerHTML = ''; return; }
+  breakdownEl.innerHTML = `
+    <div class="bd-head"><h3>技术拆解</h3><span class="bd-code">${esc(p.code)} · ${esc(shortTitle(p))}</span></div>
+    <ul class="bd-metrics">${b.metrics.map(([v, l]) => `<li><b>${esc(v)}</b><span>${esc(l)}</span></li>`).join('')}</ul>
+    <div class="bd-grid">${b.decisions.map((d) => `
+      <article class="bd-card frame">
+        <h4>${esc(d.title)}</h4>
+        <dl>
+          <div class="bd-row bd-problem"><dt>难点</dt><dd>${esc(d.problem)}</dd></div>
+          <div class="bd-row bd-approach"><dt>做法</dt><dd>${esc(d.approach)}</dd></div>
+          <div class="bd-row bd-tradeoff"><dt>取舍</dt><dd>${esc(d.tradeoff)}</dd></div>
+        </dl>
+      </article>`).join('')}</div>
+    ${b.boundary ? `<p class="bd-boundary"><span>边界</span>${esc(b.boundary)}</p>` : ''}`;
 }
 
 rowsEl.addEventListener('click', (e) => {
@@ -159,14 +181,18 @@ dossier.addEventListener('click', (e) => {
   if (b) launchDemo(b.dataset.launch);
 });
 
-// initial selection: #<product-id> or #demo-<product-id> deep links still work
-const hash = location.hash.slice(1);
-const fromHash = live.findIndex((p) => p.id === hash || `demo-${p.id}` === hash);
-select(fromHash >= 0 ? fromHash : 0);
-if (fromHash >= 0) {
+// #<product-id> and #demo-<product-id> deep links select that work. Handled on load AND on
+// hashchange: a same-page link or the back button only changes the hash, it does not reload.
+function selectFromHash({ initial = false } = {}) {
+  const hash = location.hash.slice(1);
+  const i = live.findIndex((p) => p.id === hash || `demo-${p.id}` === hash);
+  if (i < 0) { if (initial) select(0); return; }
+  select(i);
   document.getElementById('works').scrollIntoView();
-  if (hash.startsWith('demo-')) launchDemo(live[fromHash].id);
+  if (hash.startsWith('demo-')) launchDemo(live[i].id);
 }
+selectFromHash({ initial: true });
+addEventListener('hashchange', () => selectFromHash());
 
 // ---- pipeline coverage matrix
 const mark = (v) => `<span class="dot ${['off', 'part', 'on'][v ?? 0]}" role="img" aria-label="${['未使用', '部分使用', '核心环节'][v ?? 0]}"></span>`;

@@ -70,7 +70,20 @@ export function validateProducts(products, { publicDir } = {}) {
       if (live) err(p, i, 'a live product cannot have a parent; modes are status "soon"');
     }
 
-    const known = new Set(['id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
+    if (p.breakdown !== undefined) {
+      const b = p.breakdown;
+      if (!b || typeof b !== 'object') err(p, i, 'breakdown must be an object');
+      else {
+        if (!(Array.isArray(b.metrics) && b.metrics.length >= 1 && b.metrics.length <= 4 && b.metrics.every((m) => Array.isArray(m) && m.length === 2 && m.every(isStr)))) err(p, i, 'breakdown.metrics must be 1-4 [value, label] string pairs');
+        if (!(Array.isArray(b.decisions) && b.decisions.length >= 1)) err(p, i, 'breakdown.decisions must be a non-empty array');
+        else b.decisions.forEach((d, j) => {
+          for (const k of ['title', 'problem', 'approach', 'tradeoff']) if (!d || !isStr(d[k])) err(p, i, `breakdown.decisions[${j}] needs ${k}`);
+        });
+        if (b.boundary !== undefined && !isStr(b.boundary)) err(p, i, 'breakdown.boundary must be a non-empty string');
+      }
+    }
+
+    const known = new Set(['breakdown', 'id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
     for (const k of Object.keys(p)) if (!known.has(k)) err(p, i, `unknown field "${k}" (typo?)`);
   });
   if (!products.some((p) => p && p.status === 'live')) errors.push('at least one product must be live');
