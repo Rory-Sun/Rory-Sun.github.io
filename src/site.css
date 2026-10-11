@@ -125,6 +125,9 @@ main, footer { position: relative; z-index: 1; }
 .nav-actions { display: flex; align-items: center; gap: 12px; }
 .clock { font-family: var(--mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .clock-zone { color: var(--ink-3); }
+/* language switch: a link to the other language's page, styled like the icon buttons beside it */
+.lang-switch { display: inline-grid; place-items: center; min-width: 38px; height: 38px; padding: 0 8px; border: 1px solid var(--hair); font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--ink); text-decoration: none; transition: border-color .18s, color .18s; }
+.lang-switch:hover { border-color: var(--signal); color: var(--signal); }
 .theme-toggle, .nav-toggle { display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1px solid var(--hair); background: transparent; color: var(--ink); cursor: pointer; transition: border-color .18s, color .18s; }
 .theme-toggle:hover, .nav-toggle:hover { border-color: var(--signal); color: var(--signal); }
 .theme-toggle svg { width: 17px; height: 17px; }
@@ -174,6 +177,10 @@ section { padding-block: 72px; scroll-margin-top: 64px; }
 /* lines are authored and kept whole with .nb; the clamp floor keeps the longest line inside a
    350px phone content box */
 h1 { font-size: clamp(26px, 3.4vw, 46px); line-height: 1.28; font-weight: 600; letter-spacing: .005em; margin: 22px 0; }
+/* English wraps at word spaces, so text-wrap: balance is safe there and evens out the lines; it
+   stays off the Chinese headline, where every character is a break point (see .nb) */
+:root[lang|="en"] h1 { font-size: clamp(28px, 3.3vw, 44px); line-height: 1.2; letter-spacing: -.005em; text-wrap: balance; }
+:root[lang|="en"] .lede { text-wrap: pretty; }
 h1 em { font-style: normal; color: var(--signal); position: relative; }
 h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em; height: 2px; background: linear-gradient(90deg, var(--signal), transparent); opacity: .7; }
 .lede { color: var(--ink-2); font-size: 16.5px; max-width: 54ch; }
@@ -223,6 +230,7 @@ h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em
 .ix-code i { width: 7px; height: 7px; background: var(--accent-raw, var(--signal)); flex: none; }
 .ix-row[aria-pressed="true"] .ix-code { color: var(--signal); }
 .ix-name { color: var(--ink); font-weight: 600; font-size: 15.5px; line-height: 1.35; }
+.ix-name small:lang(zh), .dossier h3 small:lang(zh) { text-transform: none; letter-spacing: .06em; font-family: var(--sans); }
 .ix-name small { display: block; font-family: var(--mono); font-weight: 400; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-top: 3px; }
 .ix-m { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em; color: var(--signal); white-space: nowrap; }
@@ -296,6 +304,7 @@ h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em
 .bd-card h4 { margin: 0 0 12px; font-size: 16.5px; font-weight: 600; }
 .bd-card dl { display: grid; gap: 10px; }
 .bd-row { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: baseline; }
+:root[lang|="en"] .bd-row { grid-template-columns: 72px 1fr; }
 .bd-row dt { font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em; }
 .bd-row dd { font-size: 13.5px; line-height: 1.75; color: var(--ink-2); }
 /* the three labels carry meaning: what was hard, what was done, what it cost */
@@ -401,14 +410,21 @@ h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: .04em
   .pipe { grid-template-columns: 1fr 1fr; }
   .stage:nth-child(2)::after, .stage:nth-child(2)::before { display: none; }
 }
-/* Six nav items need ~690px beside the brand and theme button, so the menu collapses below 800.
-   Keep 800 in sync with the matchMedia query in src/nav.js. */
+/* The six nav items collapse into the menu below 800px on the Chinese page and below 920px on the
+   English page, whose labels are longer. Keep both numbers in sync with src/nav.js. */
 @media (max-width: 800px) {
   .nav { grid-template-columns: 1fr auto; }
   .nav-toggle { display: inline-grid; }
   .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; padding: 8px clamp(16px, 4vw, 48px) 18px; background: var(--panel-solid); border-bottom: 1px solid var(--hair); box-shadow: 0 30px 60px var(--shadow); }
   .nav.open .nav-links { display: flex; animation: menu-in .22s ease; }
   .nav-links a { padding: 14px 4px; border: 0; border-bottom: 1px solid var(--hair); font-size: 15px; color: var(--ink); }
+}
+@media (min-width: 801px) and (max-width: 920px) {
+  :root[lang|="en"] .nav { grid-template-columns: 1fr auto; }
+  :root[lang|="en"] .nav-toggle { display: inline-grid; }
+  :root[lang|="en"] .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; padding: 8px clamp(16px, 4vw, 48px) 18px; background: var(--panel-solid); border-bottom: 1px solid var(--hair); box-shadow: 0 30px 60px var(--shadow); }
+  :root[lang|="en"] .nav.open .nav-links { display: flex; animation: menu-in .22s ease; }
+  :root[lang|="en"] .nav-links a { padding: 14px 4px; border: 0; border-bottom: 1px solid var(--hair); font-size: 15px; color: var(--ink); }
 }
 @media (max-width: 920px) {
   .log-row { grid-template-columns: 96px minmax(0, 1fr) auto; row-gap: 4px; }

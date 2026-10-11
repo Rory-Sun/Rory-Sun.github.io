@@ -55,6 +55,30 @@ export const PRODUCTS = [
       { icon: '🧭', title: '人类迁徙', text: '30 万年间 50 余条迁徙路线逐步绘出，40 个考古遗址随时间点亮，人口、海平面与冰盖边缘实时统计。' },
       { icon: '✨', title: '逼真地球', text: '4K/8K 程序化地形、法线与生物群系贴图，大气散射、云影、海面高光与城市夜灯；月球同样在 Blender 中程序化建模。' },
     ],
+    en: {
+      title: 'Earth Chronicle',
+      subtitle: '4.6 billion years of planetary history · 300,000 years of human migration',
+      kicker: 'Interactive 3D Earth',
+      desc: 'A fully offline, interactive 3D Earth. Drag to rotate it, drag the timeline to watch continents drift, Snowball Earth freeze over and the dinosaurs fall, until human lights spread across the night side. The present-day Earth uses NASA Blue Marble and Black Marble satellite imagery; terrain, clouds and night lights for earlier eras are generated procedurally in Blender and baked.',
+      scale: '4.6 billion years',
+      source: 'NASA Blue Marble · Natural Earth',
+      size: '50+ migration routes · 40 sites',
+      specs: [['Scale', '4.6 billion years · 300,000 years of migration'], ['Imagery', 'NASA Blue Marble / Black Marble'], ['Textures', '4K / 8K procedural bakes'], ['Dependencies', '0 external APIs · runs offline']],
+      features: [
+        { title: 'Planetary history', text: 'The Hadean magma ocean, the Great Oxidation Event, two Snowball Earths, Pangaea assembling and breaking apart, Cretaceous high seas, the Chicxulub impact and the Quaternary ice ages, all driven by the timeline, with a palaeogeographic mini-map.' },
+        { title: 'Human migration', text: 'Across 300,000 years, more than 50 migration routes draw themselves in and 40 archaeological sites light up, with live counts of population, sea level and the edge of the ice sheets.' },
+        { title: 'A believable Earth', text: '4K/8K procedural terrain, normal and biome maps, atmospheric scattering, cloud shadows, ocean glint and city lights; the Moon is modelled procedurally in Blender as well.' },
+      ],
+      breakdown: {
+        metrics: [['9', 'plates, each with its own keyframes'], ['76 × 19', 'environment keyframes × parameters'], ['12 × 4', 'atmosphere samples per pixel']],
+        decisions: [
+          { title: 'Continental drift', problem: 'Continents change shape and position across 4.6 billion years, and there is no year-by-year plate dataset you can simply load.', approach: 'Each of 9 plates is described by keyframes that move a reference point to a longitude and latitude and then twist about it, interpolated as quaternions. Small plates ride on a parent until they rift (North America moves with Africa until 180 million years ago), so supercontinents assemble without seams.', tradeoff: 'This is a reconstruction for visualisation, not scientific data; both the app and its sources page say so.' },
+          { title: 'One Earth, four billion years', problem: 'The same globe has to show, in turn, a magma ocean, Snowball Earth, high seas and the arrival of plants.', approach: 'Time maps to 76 piecewise-linear keyframes over 19 environment parameters (sun brightness, sea level, ice latitude, vegetation, lava, cloud cover, Earth–Moon distance and more). The shaders only read those parameters; there is no separate texture set per era.', tradeoff: 'Eras blend by interpolation; it is not a year-by-year physical simulation.' },
+          { title: 'Atmospheric scattering', problem: 'A blue halo painted around the planet falls apart at the terminator and under the orange skies of the early Earth.', approach: 'Ray-marched Rayleigh and Mie single scattering, with 12 samples per pixel along the view ray and 4 towards the sun. Each era’s colour steers the Rayleigh term, which is why the Hadean sky is orange.', tradeoff: 'The atmosphere is drawn about three times thicker than reality; at the scale of a whole planet it would otherwise be invisible.' },
+          { title: 'Fully offline', problem: 'No online maps, tiles or font services: it should just open and work.', approach: 'Coastlines come from bundled Natural Earth data, rasterised. A script converts NASA’s source imagery to 4K/8K WebP and the originals stay out of the build, which shrank it from 266 MB to 40 MB.', tradeoff: '4K loads by default to spare integrated graphics; 8K needs ?hq=1 on the URL.' },
+        ],
+      },
+    },
     status: 'live',
   },
   {
@@ -94,6 +118,32 @@ export const PRODUCTS = [
       { icon: '🕘', title: '身体的一天', text: '拖动时间轴走完 24 小时，睡眠、进食、日常与运动四种状态驱动心率与呼吸；器官节律与时间快进是两套独立的控制。' },
       { icon: '🔍', title: '展开到部件', text: '一次点击把整个人展开成 2331 个独立命名的部件，可以停在任意展开程度，也可以搜索「肾」「股骨」或英文原名定位并高亮。' },
     ],
+    en: {
+      title: 'A Day in the Body',
+      subtitle: 'Interactive anatomy lab',
+      kicker: 'Interactive 3D anatomy',
+      desc: '2,331 real anatomical parts reassembled into a person in the browser. The meshes come from the open medical data of Z-Anatomy and BodyParts3D, cleaned up, shaded and exported in Blender, not approximated with spheres and capsules. Drag a 24-hour timeline to see the heart, lungs and digestion respond to sleep, meals and exercise; seven body systems switch on and off, the skin turns translucent, and the whole body can be exploded into its parts.',
+      scale: '24 hours',
+      source: 'Z-Anatomy · BodyParts3D',
+      size: '2,331 parts · 7 systems',
+      specs: [['Scale', '24 hours · 4 states'], ['Data', 'Z-Anatomy / BodyParts3D'], ['Parts', '2,331 · 7 systems'], ['Payload', 'about 28 MB · full screen recommended']],
+      demoNote: 'The anatomy model is about 28 MB · best opened full screen in a new tab',
+      features: [
+        { title: 'A real body', text: 'The meshes come from the open medical data of Z-Anatomy and BodyParts3D, prepared and exported in Blender. Bone, lung and muscle use view-dependent translucency, so stacked layers read as an X-ray outline instead of white haze.' },
+        { title: 'A day in the body', text: 'Drag through 24 hours: sleep, meals, daily activity and exercise drive heart rate and breathing. Organ rhythm and the time-lapse are controlled separately.' },
+        { title: 'Down to the parts', text: 'One click explodes the body into 2,331 individually named parts. Stop at any point, or search for a part by its original name (or, on the Chinese interface, a keyword like 肾) to find and highlight it.' },
+      ],
+      breakdown: {
+        metrics: [['2,331', 'individually named parts'], ['6.85M → 1.92M', 'triangles; the web keeps 28%'], ['26', 'structure groups, one draw each']],
+        decisions: [
+          { title: 'Real meshes are heavy', problem: 'Z-Anatomy’s original meshes are too heavy for a browser, yet the body cannot be faked with spheres and capsules.', approach: 'Blender keeps a full-resolution scene and generates a separate version for the web: 26 structure groups go from about 6.85 million triangles to about 1.92 million, and the simplification is never written back into the full model.', tradeoff: 'The main model is still about 28 MB, so a first visit waits for it to download.' },
+          { title: 'Stacked layers turn to haze', problem: 'Skull, ribcage and lungs are translucent layers stacked on one another; give every layer the same opacity and you get a white fog.', approach: 'Materials are reassigned at runtime: surfaces facing the camera are more transparent and silhouettes more solid, so stacks read like an X-ray. Post-processing renders into a 4× multisampled target, so thin vessels and bone edges stay free of jagged edges.', tradeoff: 'Materials in the browser differ from those in the Blender scene, so the two have to be tuned separately.' },
+          { title: 'Explode without shredding', problem: 'Exploding a body into 2,331 parts must neither cut meshes apart nor let coordinate errors pile up.', approach: 'Parts are drawn in batches by system, one draw call per system, and each part moves as a rigid whole. Reassembly zeroes the offsets and swaps back to the detailed model. The part meshes, about 54 MB, download only the first time you press “explode”.', tradeoff: 'The body holds still while exploded; organ animation runs only when it is assembled.' },
+          { title: 'Finding one part in 2,331', problem: 'Every part carries its original anatomical name in English or Latin, which most of the project’s Chinese-speaking visitors would never type.', approach: 'Search queries the catalogue only, without downloading meshes. It accepts common Chinese keywords such as 肾 (kidney) and 股骨 (femur) as well as the original names, and loads, frames and highlights a part only once you pick it.', tradeoff: 'There is no complete Chinese anatomical glossary yet, so rarer parts still need their English names.' },
+        ],
+        boundary: 'This is an educational anatomy display and animation prototype, not a physiological digital twin. Heart and breathing rates are demo presets, and organ proportions and positions have not been reviewed by an independent medical expert.',
+      },
+    },
     status: 'live',
   },
   {
@@ -132,6 +182,30 @@ export const PRODUCTS = [
       { icon: '🐕', title: '可点击的世界', text: '石桥、稻田与小狗都能触发互动与声音，细节里藏着惊喜。' },
       { icon: '🎧', title: '合成声景', text: '溪流与鸟鸣不是录音，而是用 Web Audio 在浏览器里实时合成；点击溪水会泛起涟漪，并发出一声水响。' },
     ],
+    en: {
+      title: 'Autumn by the Creek',
+      subtitle: 'A place to slow down',
+      kicker: 'Interactive 3D landscape',
+      desc: 'Step into a 3D mountain village and orbit it freely. Click the stone bridge, the rice fields and the dog, and listen to the creek and the birds: an immersive scene made for slowing down.',
+      scale: 'One afternoon',
+      source: 'Procedural Blender scene',
+      size: '3D village · ambient soundscape',
+      specs: [['Scale', 'One autumn afternoon'], ['Scene', 'Procedural Blender modelling'], ['Assets', 'Poly Haven CC0 photoscans'], ['Interaction', '4 preset views · clickable hotspots'], ['Sound', 'Synthesised live with Web Audio']],
+      features: [
+        { title: 'Free orbit', text: 'Drag the camera around the village; the autumn colours shift with the view and the creek runs beneath you.' },
+        { title: 'A world you can click', text: 'The stone bridge, the rice fields and the dog all respond with interactions and sounds; there are surprises in the details.' },
+        { title: 'Synthesised soundscape', text: 'The creek and the birdsong are not recordings: they are synthesised live in the browser with Web Audio. Click the water and it ripples, with a splash.' },
+      ],
+      breakdown: {
+        metrics: [['442 → 10', 'scene objects → draw batches'], ['75,050', 'vertices'], ['0', 'recordings; every sound is synthesised']],
+        decisions: [
+          { title: 'The cost of a whole village', problem: 'Creek, rice fields, tiled houses and woods add up to hundreds of objects, and drawing them one by one stutters on an ordinary computer.', approach: 'The 442 exported objects are organised into 10 draw batches. Nearby grass and ferns are Poly Haven CC0 models instanced in bulk; mid-distance trees have solid crowns, and only the farthest woods in the haze are flat cards.', tradeoff: 'On phones it automatically thins the vegetation and lowers reflection and shadow quality.' },
+          { title: 'A dog, not a toy', problem: 'A dog whose four legs swing to a fixed rhythm looks like a wind-up toy sliding along.', approach: 'Stride is driven by the distance actually travelled, paws are pinned in world space, and two-bone inverse kinematics keeps them planted. Paws stay level while bearing weight instead of rotating with the shin; turning steps, acceleration, braking and pauses to sniff are handled too.', tradeoff: 'The dog mesh was generated from a reference image, with the rig weights and gait set up separately; the fur comes from the model and textures, with no separate hair simulation.' },
+          { title: 'Water that is not just blue', problem: 'Paint the water blue and add a reflection, and it looks like plastic.', approach: 'Depth is estimated from position across the channel: shallows show the riverbed, deeper water absorbs more light, and a Fresnel term strengthens reflections at grazing angles. Clicking the water sends out ripples.', tradeoff: 'It is an estimate, not a fluid simulation.' },
+          { title: 'Not a single recording', problem: 'A looped ambient recording gives away its seam within a minute.', approach: 'Everything is synthesised live with Web Audio: filtered noise for the stream, oscillators for birdsong at random intervals, and a splash when you click the water. It pauses when the tab is hidden.', tradeoff: 'Volume is global; it does not change with the camera position.' },
+        ],
+      },
+    },
     status: 'live',
   },
   {
@@ -145,6 +219,12 @@ export const PRODUCTS = [
     emoji: '🌙',
     accent: '#7a86a8',
     url: 'https://rory-sun.github.io/earth-chronicle/?mode=moon',
+    en: {
+      title: 'The Moon',
+      kicker: 'Earth Chronicle · new view',
+      desc: 'The Moon on the same timeline: the Theia impact, the magma ocean, the Late Heavy Bombardment, mare eruptions and the slow drift away from Earth, until the Apollo and Chang’e landing sites light up one by one. Launched as Earth Chronicle’s fourth mode.',
+      blurb: 'The Moon on the same timeline, from the Theia impact to the Apollo and Chang’e landing sites',
+    },
     status: 'soon',
   },
   {
@@ -158,6 +238,12 @@ export const PRODUCTS = [
     emoji: '🧬',
     accent: '#8a5aa8',
     url: 'https://rory-sun.github.io/earth-chronicle/?mode=life',
+    en: {
+      title: 'Tree of Life',
+      kicker: 'Earth Chronicle · new view',
+      desc: 'A zoomable evolutionary tree that shares Earth Chronicle’s timeline: drag through time and lineages grow; extinct branches stop where they end, marked †; click any species for a summary and jump to the moment it appeared. About 90 lineages, from the last universal common ancestor to Homo sapiens.',
+      blurb: 'About 90 lineages, sharing Earth Chronicle’s timeline',
+    },
     status: 'soon',
   },
 ];

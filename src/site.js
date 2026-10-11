@@ -1,5 +1,7 @@
-// Personal site: observatory console. Renders the mission index, the selected work's screen and
-// dossier, and the pipeline coverage matrix from src/products.js; launches in-page demos on demand.
+// Personal site: observatory console. Renders the mission index, the selected work's screen,
+// dossier and technical breakdown, the pipeline coverage matrix and the log from src/products.js and
+// src/updates.js; launches in-page demos on demand. All visible text comes from src/i18n.js (t) or
+// from the records' own `en` fields (loc), so the same script serves / and /en/.
 
 // self-hosted fonts (Google Fonts is unreachable from mainland China); Latin subsets only, CJK
 // falls back to the system face
@@ -14,46 +16,48 @@ import '@fontsource/ibm-plex-sans/latin-600.css';
 
 import { PRODUCTS } from './products.js';
 import { UPDATES } from './updates.js';
+import { LANG, t, loc } from './i18n.js';
 import './theme.js';
 import './nav.js';
 import './hud.js';
 import './globe.js';
 
-const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const EN = LANG === 'en';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const live = PRODUCTS.filter((p) => p.status === 'live');
 const modesOf = (p) => PRODUCTS.filter((m) => m.parent === p.id && m.url);
-// 「地球纪元 · Earth Chronicle」splits into a Chinese name and a Latin name, but 「人体 · 一日」is one
-// Chinese name and must stay whole — only split when the part after the dot is Latin
-const titleParts = (p) => {
-  const [a, b] = p.title.split(' · ');
-  return b && /^[A-Za-z]/.test(b) ? [a, b] : [p.title, p.subtitle || ''];
-};
-const shortTitle = (p) => titleParts(p)[0];
-const enTitle = (p) => titleParts(p)[1];
+
+// Names. Chinese page: 「地球纪元」with the Latin name as a caption. English page: the English name with
+// the Chinese name as the caption. 「人体 · 一日」is one Chinese name and must stay whole, so the zh title
+// is only split when the part after the dot is Latin.
+const zhName = (p) => { const [a, b] = p.title.split(' · '); return b && /^[A-Za-z]/.test(b) ? a : p.title; };
+const zhLatin = (p) => { const [, b] = p.title.split(' · '); return b && /^[A-Za-z]/.test(b) ? b : p.subtitle || ''; };
+const nameOf = (p) => (EN ? loc(p, 'title') : zhName(p));
+const altName = (p) => (EN ? zhName(p) : zhLatin(p));
+const altLang = EN ? 'zh-CN' : 'en';
 
 // ---- counters in the hero and section header
 const modeCount = PRODUCTS.filter((p) => p.parent).length;
 const pad = (n) => String(n).padStart(2, '0');
 for (const id of ['target-count', 'targets']) { const el = document.getElementById(id); if (el) el.textContent = pad(live.length); }
-const worksTag = document.getElementById('works-tag');
-if (worksTag) worksTag.textContent = `${live.length} 个目标 · ${modeCount} 个模式`;
+document.getElementById('works-tag').textContent = t('js.worksTag', { n: live.length, m: modeCount });
 
 // ---- mission index
 const rowsEl = document.getElementById('ix-rows');
 rowsEl.innerHTML = live.map((p, i) => `
   <button class="ix-row" type="button" data-i="${i}" aria-pressed="false" aria-controls="screen dossier" style="--accent-raw:${esc(p.accent || '#7cc4ff')}">
     <span class="ix-code"><i aria-hidden="true"></i>${esc(p.code)}</span>
-    <span class="ix-name">${esc(shortTitle(p))}<small>${esc(enTitle(p))}</small></span>
-    <span class="ix-m c-scale">${esc(p.scale)}</span>
-    <span class="c-src">${esc(p.source)}</span>
-    <span class="ix-m c-size">${esc(p.size)}</span>
-    <span><span class="chip${p.embed ? '' : ' ext'}">${p.embed ? '页内试玩' : '新标签页'}</span></span>
+    <span class="ix-name">${esc(nameOf(p))}<small lang="${altLang}">${esc(altName(p))}</small></span>
+    <span class="ix-m c-scale">${esc(loc(p, 'scale'))}</span>
+    <span class="c-src">${esc(loc(p, 'source'))}</span>
+    <span class="ix-m c-size">${esc(loc(p, 'size'))}</span>
+    <span><span class="chip${p.embed ? '' : ' ext'}">${t(p.embed ? 'js.chip.embed' : 'js.chip.ext')}</span></span>
   </button>
   ${modesOf(p).map((m) => `
   <a class="ix-sub" href="${esc(m.url)}" target="_blank" rel="noopener">
     <span class="ix-code">${esc(m.code || '')}</span>
-    <span><span class="tree" aria-hidden="true">└</span>模式 · <b>${esc(m.title)}</b> <span class="blurb">— ${esc(m.blurb || m.desc)}</span></span>
-    <span class="go">打开 ↗</span>
+    <span><span class="tree" aria-hidden="true">└</span>${t('js.mode')} · <b>${esc(loc(m, 'title'))}</b> <span class="blurb">— ${esc(loc(m, 'blurb') || loc(m, 'desc'))}</span></span>
+    <span class="go">${t('js.open')}</span>
   </a>`).join('')}
 `).join('');
 const rowButtons = [...rowsEl.querySelectorAll('.ix-row')];
@@ -78,26 +82,29 @@ function select(i, { focusRow = false } = {}) {
   resetScreen();
   screen.dataset.id = p.id;
   poster.src = p.poster;
-  poster.alt = `${shortTitle(p)} 画面`;
+  poster.alt = t('js.posterAlt', { name: nameOf(p) });
   document.getElementById('ov-code').textContent = p.code;
-  document.getElementById('ov-scale').textContent = `尺度 ${p.scale}`;
+  document.getElementById('ov-scale').textContent = t('js.scale', { v: loc(p, 'scale') });
 
   const hint = (cls, text) => `<p class="demo-hint ${cls}">${esc(text)}</p>`;
   const launch = p.embed
-    ? `<button class="btn primary demo-launch" type="button" data-launch="${esc(p.id)}">▶ 启动演示</button>`
-      + `<a class="btn primary demo-open-sm" href="${esc(p.url)}" target="_blank" rel="noopener">打开项目 ↗</a>`
-      + `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">打开完整版 ↗</a>`
-    : `<a class="btn primary" href="${esc(p.url)}" target="_blank" rel="noopener">打开完整版 ↗</a>`;
+    ? `<button class="btn primary demo-launch" type="button" data-launch="${esc(p.id)}">${t('js.launch')}</button>`
+      + `<a class="btn primary demo-open-sm" href="${esc(p.url)}" target="_blank" rel="noopener">${t('js.openProject')}</a>`
+      + `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">${t('js.openFull')}</a>`
+    : `<a class="btn primary" href="${esc(p.url)}" target="_blank" rel="noopener">${t('js.openFull')}</a>`;
+  const note = loc(p, 'demoNote');
   const notes = p.embed
-    ? hint('demo-hint-lg', p.demoNote || '在本页的画面里直接运行 · 建议使用桌面浏览器') + hint('demo-hint-sm', '手机屏幕放不下这个界面 · 在新标签页全屏体验')
-    : hint('', p.demoNote || '在新标签页打开');
+    ? hint('demo-hint-lg', note || t('js.hintEmbed')) + hint('demo-hint-sm', t('js.hintPhone'))
+    : hint('', note || t('js.hintNewTab'));
+  const specs = loc(p, 'specs');
+  const feats = loc(p, 'features');
 
   dossier.innerHTML = `
-    <div class="dossier-label">${esc(p.code)} · ${esc(p.kicker || '')}</div>
-    <h3>${esc(shortTitle(p))}<small>${esc(enTitle(p))}</small></h3>
-    <p class="dossier-desc">${esc(p.desc)}</p>
-    ${p.specs ? `<dl class="spec">${p.specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
-    ${p.features ? `<ul class="feats">${p.features.map((f) => `<li><b>${esc(f.title)}</b>${esc(f.text)}</li>`).join('')}</ul>` : ''}
+    <div class="dossier-label">${esc(p.code)} · ${esc(loc(p, 'kicker') || '')}</div>
+    <h3>${esc(nameOf(p))}<small lang="${altLang}">${esc(altName(p))}</small></h3>
+    <p class="dossier-desc">${esc(loc(p, 'desc'))}</p>
+    ${specs ? `<dl class="spec">${specs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+    ${feats ? `<ul class="feats">${feats.map((f) => `<li><b>${esc(f.title)}</b>${esc(f.text)}</li>`).join('')}</ul>` : ''}
     <div class="actions">${launch}</div>
     ${notes}`;
   renderBreakdown(p);
@@ -106,22 +113,22 @@ function select(i, { focusRow = false } = {}) {
 // ---- technical breakdown of the selected work: key numbers, then problem / approach / trade-off
 const breakdownEl = document.getElementById('breakdown');
 function renderBreakdown(p) {
-  const b = p.breakdown;
+  const b = loc(p, 'breakdown');
   breakdownEl.hidden = !b;
   if (!b) { breakdownEl.innerHTML = ''; return; }
   breakdownEl.innerHTML = `
-    <div class="bd-head"><h3>技术拆解</h3><span class="bd-code">${esc(p.code)} · ${esc(shortTitle(p))}</span></div>
+    <div class="bd-head"><h3>${t('js.breakdown')}</h3><span class="bd-code">${esc(p.code)} · ${esc(nameOf(p))}</span></div>
     <ul class="bd-metrics">${b.metrics.map(([v, l]) => `<li><b>${esc(v)}</b><span>${esc(l)}</span></li>`).join('')}</ul>
     <div class="bd-grid">${b.decisions.map((d) => `
       <article class="bd-card frame">
         <h4>${esc(d.title)}</h4>
         <dl>
-          <div class="bd-row bd-problem"><dt>难点</dt><dd>${esc(d.problem)}</dd></div>
-          <div class="bd-row bd-approach"><dt>做法</dt><dd>${esc(d.approach)}</dd></div>
-          <div class="bd-row bd-tradeoff"><dt>取舍</dt><dd>${esc(d.tradeoff)}</dd></div>
+          <div class="bd-row bd-problem"><dt>${t('js.problem')}</dt><dd>${esc(d.problem)}</dd></div>
+          <div class="bd-row bd-approach"><dt>${t('js.approach')}</dt><dd>${esc(d.approach)}</dd></div>
+          <div class="bd-row bd-tradeoff"><dt>${t('js.tradeoff')}</dt><dd>${esc(d.tradeoff)}</dd></div>
         </dl>
       </article>`).join('')}</div>
-    ${b.boundary ? `<p class="bd-boundary"><span>边界</span>${esc(b.boundary)}</p>` : ''}`;
+    ${b.boundary ? `<p class="bd-boundary"><span>${t('js.boundary')}</span>${esc(b.boundary)}</p>` : ''}`;
 }
 
 rowsEl.addEventListener('click', (e) => {
@@ -149,7 +156,7 @@ function launchDemo(id) {
   const status = document.createElement('div');
   status.className = 'demo-loading';
   status.setAttribute('role', 'status');
-  status.innerHTML = `<span class="spinner" aria-hidden="true"></span><span>正在载入 ${esc(shortTitle(p))}…</span><a href="${esc(p.url)}" target="_blank" rel="noopener">加载太慢？在新标签页打开 ↗</a>`;
+  status.innerHTML = `<span class="spinner" aria-hidden="true"></span><span>${esc(t('js.loading', { name: nameOf(p) }))}</span><a href="${esc(p.url)}" target="_blank" rel="noopener">${t('js.slow')}</a>`;
   screen.appendChild(status);
   screen.classList.add('loading');
   const slow = setTimeout(() => status.classList.add('slow'), 6000);
@@ -157,12 +164,12 @@ function launchDemo(id) {
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'screen-close';
-  close.textContent = '✕ 关闭演示';
+  close.textContent = t('js.close');
   close.addEventListener('click', () => { resetScreen(); dossier.querySelector('[data-launch]')?.focus(); });
 
   const iframe = document.createElement('iframe');
   iframe.src = p.embed;
-  iframe.title = `${shortTitle(p)} 交互演示`;
+  iframe.title = t('js.iframeTitle', { name: nameOf(p) });
   iframe.allow = 'fullscreen; autoplay';
   iframe.addEventListener('load', () => {
     clearTimeout(slow);
@@ -194,29 +201,43 @@ function selectFromHash({ initial = false } = {}) {
 selectFromHash({ initial: true });
 addEventListener('hashchange', () => selectFromHash());
 
-// ---- pipeline coverage matrix
-const mark = (v) => `<span class="dot ${['off', 'part', 'on'][v ?? 0]}" role="img" aria-label="${['未使用', '部分使用', '核心环节'][v ?? 0]}"></span>`;
-document.getElementById('matrix-body').innerHTML = live.filter((p) => p.stages).map((p) => `
-  <tr><td>${esc(shortTitle(p))}</td><td>${mark(p.stages.data)}</td><td>${mark(p.stages.blender)}</td><td>${mark(p.stages.realtime)}</td><td>${mark(p.stages.story)}</td></tr>`).join('');
+// ---- language switch: carry the reader's place across. The link goes to the other language's
+// page; on the way, keep the current hash, or the selected work if it isn't the default one.
+const langSwitch = document.getElementById('lang-switch');
+langSwitch?.addEventListener('click', (e) => {
+  const base = langSwitch.getAttribute('href').split('#')[0];
+  const hash = location.hash || (current > 0 ? `#${live[current].id}` : '');
+  if (!hash) return;
+  e.preventDefault();
+  location.assign(base + hash);
+});
 
-// ---- 观测日志: newest first, filterable by work, the oldest entries folded behind a button
+// ---- pipeline coverage matrix
+const markKey = ['legend.off', 'legend.part', 'legend.on'];
+const mark = (v) => `<span class="dot ${['off', 'part', 'on'][v ?? 0]}" role="img" aria-label="${esc(t(markKey[v ?? 0]))}"></span>`;
+document.getElementById('matrix-body').innerHTML = live.filter((p) => p.stages).map((p) => `
+  <tr><td>${esc(nameOf(p))}</td><td>${mark(p.stages.data)}</td><td>${mark(p.stages.blender)}</td><td>${mark(p.stages.realtime)}</td><td>${mark(p.stages.story)}</td></tr>`).join('');
+
+// ---- log: newest first, filterable by work, the oldest entries folded behind a button
 const LOG_FOLD = 6;
 const logList = document.getElementById('log-list');
 const logMore = document.getElementById('log-more');
 const logFilter = document.getElementById('log-filter');
 const byId = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
-const targetLabel = (t) => (t === 'site' ? { code: 'SYS', name: '主页', accent: '' } : { code: byId[t]?.code || '', name: shortTitle(byId[t] || { title: t }), accent: byId[t]?.accent || '' });
+const targetLabel = (tg) => (tg === 'site'
+  ? { code: 'SYS', name: t('js.site'), accent: '' }
+  : { code: byId[tg]?.code || '', name: byId[tg] ? nameOf(byId[tg]) : tg, accent: byId[tg]?.accent || '' });
 let logTarget = 'all', logExpanded = false;
 
-document.getElementById('log-count').textContent = `${UPDATES.length} 条记录`;
+document.getElementById('log-count').textContent = t('js.logCount', { n: UPDATES.length });
 const lastSync = document.getElementById('last-sync');
 if (lastSync && UPDATES[0]) { lastSync.dateTime = UPDATES[0].date; lastSync.textContent = UPDATES[0].date.slice(5); }
 
-const targets = ['all', 'site', ...live.map((p) => p.id)].filter((t) => t === 'all' || UPDATES.some((u) => u.target === t));
-logFilter.innerHTML = targets.map((t) => {
-  const n = t === 'all' ? UPDATES.length : UPDATES.filter((u) => u.target === t).length;
-  const label = t === 'all' ? '全部' : targetLabel(t).name;
-  return `<button type="button" class="log-chip" data-target="${t}" aria-pressed="${t === 'all'}">${esc(label)} <span>${n}</span></button>`;
+const targets = ['all', 'site', ...live.map((p) => p.id)].filter((tg) => tg === 'all' || UPDATES.some((u) => u.target === tg));
+logFilter.innerHTML = targets.map((tg) => {
+  const n = tg === 'all' ? UPDATES.length : UPDATES.filter((u) => u.target === tg).length;
+  const label = tg === 'all' ? t('js.all') : targetLabel(tg).name;
+  return `<button type="button" class="log-chip" data-target="${tg}" aria-pressed="${tg === 'all'}">${esc(label)} <span>${n}</span></button>`;
 }).join('');
 
 function renderLog() {
@@ -224,18 +245,19 @@ function renderLog() {
   const fold = logTarget === 'all' && !logExpanded && items.length > LOG_FOLD;
   const shown = fold ? items.slice(0, LOG_FOLD) : items;
   logList.innerHTML = shown.map((u, i) => {
-    const t = targetLabel(u.target);
+    const tg = targetLabel(u.target);
+    const title = loc(u, 'title'), url = loc(u, 'url');
     const sameDay = i > 0 && shown[i - 1].date === u.date;
     return `<li class="log-row${sameDay ? ' same-day' : ''}">
       <time class="log-date" datetime="${u.date}">${u.date}</time>
-      <span class="log-tgt"${t.accent ? ` style="--accent-raw:${esc(t.accent)}"` : ''}><i aria-hidden="true"></i>${esc(t.code)} · ${esc(t.name)}</span>
-      <div class="log-body"><b>${esc(u.title)}</b><p>${esc(u.text)}</p></div>
-      ${u.url ? `<a class="log-go" href="${esc(u.url)}" target="_blank" rel="noopener" aria-label="查看：${esc(t.name)} · ${esc(u.title)}">查看 ↗</a>` : '<span></span>'}
+      <span class="log-tgt"${tg.accent ? ` style="--accent-raw:${esc(tg.accent)}"` : ''}><i aria-hidden="true"></i>${esc(tg.code)} · ${esc(tg.name)}</span>
+      <div class="log-body"><b>${esc(title)}</b><p>${esc(loc(u, 'text'))}</p></div>
+      ${url ? `<a class="log-go" href="${esc(url)}" target="_blank" rel="noopener" aria-label="${esc(t('js.viewAria', { name: tg.name, title }))}">${t('js.view')}</a>` : '<span></span>'}
     </li>`;
   }).join('');
   const hidden = items.length - shown.length;
   logMore.hidden = !(logTarget === 'all' && items.length > LOG_FOLD);
-  logMore.textContent = fold ? `展开更早的 ${hidden} 条` : '收起';
+  logMore.textContent = fold ? t('js.more', { n: hidden }) : t('js.less');
   logMore.setAttribute('aria-expanded', String(!fold));
 }
 logFilter.addEventListener('click', (e) => {

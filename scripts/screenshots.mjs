@@ -38,16 +38,25 @@ const VIEWPORTS = [
   { name: 'mobile', width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
 ];
 
+// Chinese page: every viewport in both themes. English page: a subset that covers its own layout
+// risks (longer nav labels collapse at a different width, so the tablet shot matters).
+const SHOTS = [
+  ...VIEWPORTS.flatMap((vp) => ['dark', 'light'].map((theme) => ({ vp, theme, lang: 'zh', path: '' }))),
+  { vp: VIEWPORTS[0], theme: 'dark', lang: 'en', path: 'en/' },
+  { vp: VIEWPORTS[1], theme: 'dark', lang: 'en', path: 'en/' },
+  { vp: VIEWPORTS[2], theme: 'light', lang: 'en', path: 'en/' },
+];
+
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
 try {
-  for (const vp of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+  for (const { vp, theme, lang, path: pagePath } of SHOTS) {
+    {
       const { name, ...viewport } = vp;
       const ctx = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, isMobile: viewport.isMobile, hasTouch: viewport.hasTouch, deviceScaleFactor: viewport.deviceScaleFactor || 1, reducedMotion: 'reduce' });
       const page = await ctx.newPage();
       await page.addInitScript((t) => { try { localStorage.setItem('rory-theme', t); } catch {} }, theme);
-      await page.goto(base, { waitUntil: 'networkidle' });
+      await page.goto(base + pagePath, { waitUntil: 'networkidle' });
       // wait for the WebGL globe (or give up after a few seconds if the runner has no GL)
       await page.waitForSelector('.orb.ready', { timeout: 8000 }).catch(() => console.warn(`  [${name}/${theme}] globe did not become ready; capturing poster fallback`));
       // scroll through once so lazy-loaded posters are requested, then wait for them to decode
@@ -72,7 +81,7 @@ try {
       // in reduced-motion mode every .reveal is visible, so a full-page capture shows the whole site.
       // The page is ~7000px tall and the hero canvas now keeps its drawing buffer, so the default
       // 30s screenshot timeout is not always enough on a software renderer.
-      const file = path.join(out, `${name}-${theme}.png`);
+      const file = path.join(out, `${lang === 'en' ? 'en-' : ''}${name}-${theme}.png`);
       await page.screenshot({ path: file, fullPage: true, animations: 'disabled', timeout: 120_000 });
       console.log(`✔ ${path.relative(root, file)} (${viewport.width}x${viewport.height}, ${theme})`);
       await ctx.close();

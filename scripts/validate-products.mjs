@@ -83,7 +83,7 @@ export function validateProducts(products, { publicDir } = {}) {
       }
     }
 
-    const known = new Set(['breakdown', 'id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
+    const known = new Set(['en', 'breakdown', 'id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
     for (const k of Object.keys(p)) if (!known.has(k)) err(p, i, `unknown field "${k}" (typo?)`);
   });
   if (!products.some((p) => p && p.status === 'live')) errors.push('at least one product must be live');
@@ -95,7 +95,7 @@ export function validateUpdates(updates, products) {
   const errors = [];
   if (!Array.isArray(updates)) return ['UPDATES must be an array'];
   const ids = new Set((products || []).map((p) => p && p.id));
-  const known = new Set(['date', 'target', 'title', 'text', 'url']);
+  const known = new Set(['date', 'target', 'title', 'text', 'url', 'en']);
   updates.forEach((u, i) => {
     const err = (msg) => errors.push(`updates[${i}]${u && u.title ? ` (${u.title})` : ''}: ${msg}`);
     if (!u || typeof u !== 'object') return err('entry must be an object');
@@ -112,6 +112,49 @@ export function validateUpdates(updates, products) {
   return errors;
 }
 
+// Validates the bilingual layer: interface strings, the template's tokens, and the `en` fields of
+// products and log entries. Every string shown on the Chinese page must have an English counterpart
+// with the same shape, or the build fails.
+const TRANSLATABLE = ['title', 'subtitle', 'kicker', 'desc', 'scale', 'source', 'size', 'specs', 'features', 'demoNote', 'blurb', 'breakdown'];
+export function validateI18n({ strings, template, products, updates }) {
+  const errors = [];
+  const zh = strings?.zh || {}, en = strings?.en || {};
+  for (const k of Object.keys(zh)) if (!(k in en)) errors.push(`strings: "${k}" is missing in en`);
+  for (const k of Object.keys(en)) if (!(k in zh)) errors.push(`strings: "${k}" is missing in zh`);
+  for (const [lang, table] of Object.entries(strings || {})) for (const [k, v] of Object.entries(table)) if (!isStr(v)) errors.push(`strings.${lang}: "${k}" must be a non-empty string`);
+  if (isStr(template)) {
+    const tokens = new Set([...template.matchAll(/\{\{([\w.]+)\}\}/g)].map((m) => m[1]));
+    for (const k of tokens) if (!(k in zh) || !(k in en)) errors.push(`index.html uses {{${k}}} but it is not defined in both languages`);
+    // tokens inside attribute values must not contain a double quote, or they break the attribute
+    const inAttr = new Set([...template.matchAll(/="[^"]*\{\{([\w.]+)\}\}[^"]*"/g)].map((m) => m[1]));
+    for (const k of inAttr) for (const lang of ['zh', 'en']) if (strings[lang]?.[k]?.includes('"')) errors.push(`strings.${lang}: "${k}" is used in an attribute and must not contain a double quote`);
+  }
+  const sameShape = (where, a, b) => {
+    if (Array.isArray(a)) {
+      if (!Array.isArray(b) || b.length !== a.length) return errors.push(`${where}: en must have ${a.length} items like zh`);
+      a.forEach((x, i) => sameShape(`${where}[${i}]`, x, b[i]));
+    } else if (a && typeof a === 'object') {
+      if (!b || typeof b !== 'object') return errors.push(`${where}: en is missing`);
+      for (const k of Object.keys(a)) if (k !== 'icon') sameShape(`${where}.${k}`, a[k], b[k]);
+    } else if (typeof a === 'string' && !isStr(b)) errors.push(`${where}: en text is missing`);
+  };
+  (products || []).forEach((p, i) => {
+    if (!p || (p.status !== 'live' && !p.parent)) return;
+    const where = `products[${i}] (${p.id})`;
+    if (!p.en || typeof p.en !== 'object') return errors.push(`${where}: needs an en object`);
+    for (const k of Object.keys(p.en)) if (!TRANSLATABLE.includes(k)) errors.push(`${where}: en.${k} is not a translatable field (typo?)`);
+    for (const k of TRANSLATABLE) if (p[k] !== undefined) sameShape(`${where}.en.${k}`, p[k], p.en[k]);
+    if (p.en.title === undefined) errors.push(`${where}: en.title is required`);
+  });
+  (updates || []).forEach((u, i) => {
+    const where = `updates[${i}] (${u?.title})`;
+    if (!u?.en || !isStr(u.en.title) || !isStr(u.en.text)) return errors.push(`${where}: needs en.title and en.text`);
+    for (const k of Object.keys(u.en)) if (!['title', 'text', 'url'].includes(k)) errors.push(`${where}: en.${k} is not allowed`);
+    if (u.en.url !== undefined && !isHttp(u.en.url)) errors.push(`${where}: en.url must be an http(s) URL`);
+  });
+  return errors;
+}
+
 // ---- CLI
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -120,9 +163,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const { UPDATES } = await import(url('src/updates.js'));
   const errors = validateProducts(PRODUCTS, { publicDir: path.join(root, 'public') });
   const uErrors = validateUpdates(UPDATES, PRODUCTS);
+  const { STRINGS } = await import(url('src/i18n.js'));
+  const { readFileSync } = await import('node:fs');
+  const iErrors = validateI18n({ strings: STRINGS, template: readFileSync(path.join(root, 'index.html'), 'utf8'), products: PRODUCTS, updates: UPDATES });
   if (errors.length) console.error(`✖ products.js has ${errors.length} problem(s):\n  - ${errors.join('\n  - ')}`);
   if (uErrors.length) console.error(`✖ updates.js has ${uErrors.length} problem(s):\n  - ${uErrors.join('\n  - ')}`);
-  if (errors.length || uErrors.length) process.exit(1);
+  if (iErrors.length) console.error(`✖ i18n has ${iErrors.length} problem(s):\n  - ${iErrors.join('\n  - ')}`);
+  if (errors.length || uErrors.length || iErrors.length) process.exit(1);
   console.log(`✔ products.js: ${PRODUCTS.length} records valid (${PRODUCTS.filter((p) => p.status === 'live').length} live)`);
   console.log(`✔ updates.js: ${UPDATES.length} entries valid (latest ${UPDATES[0]?.date})`);
+  console.log(`✔ i18n: ${Object.keys(STRINGS.zh).length} strings in both languages, all records translated`);
 }

@@ -1,5 +1,7 @@
 // Light/dark theme toggle. The chosen theme is applied before first paint by the inline script in
 // index.html; this module wires the button and animates the switch with the View Transitions API.
+import { t } from './i18n.js';
+
 const KEY = 'rory-theme';
 const root = document.documentElement;
 const btn = document.getElementById('theme-toggle');
@@ -7,7 +9,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 function label() {
   const light = root.dataset.theme === 'light';
-  btn.setAttribute('aria-label', light ? '切换到深色模式' : '切换到浅色模式');
+  btn.setAttribute('aria-label', t(light ? 'theme.toDark' : 'theme.toLight'));
   btn.title = btn.getAttribute('aria-label');
 }
 
