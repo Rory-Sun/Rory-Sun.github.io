@@ -10,6 +10,21 @@
 //   url     可选：直达链接
 export const UPDATES = [
   {
+    date: '2026-11-12',
+    target: 'site',
+    title: '首屏地球有了云层',
+    text: '首屏那颗可以拖动的地球加上了缓慢漂移的云层与云影，海面高光收成一个亮点，大气边缘变薄；地球纪元的海报和分享卡片换成了从新界面里拍下的画面。',
+    en: { title: 'Clouds over the hero globe', text: 'The draggable globe at the top now has slowly drifting clouds and their shadows, a sun glint that is a point instead of a patch, and a thinner atmospheric limb. Earth Chronicle’s poster and the share cards were re-shot from its new interface.' },
+  },
+  {
+    date: '2026-11-12',
+    target: 'earth-chronicle',
+    title: '界面重做',
+    text: '地球完整入画并留出余白，文字去掉了边框，细节默认收起；时间轴压成一行，只有当前年代亮起自己的颜色；地名标注互相避让；月球与生命之树不再从空画面开场，手机上顶栏不再溢出。',
+    url: 'https://rory-sun.github.io/earth-chronicle/',
+    en: { title: 'Interface redesign', text: 'The whole globe now sits in frame with room around it, the text lost its boxes and details stay folded until asked for. The timeline is a single line where only the current era takes its colour, place labels make way for one another, the Moon and the Tree of Life no longer open on an empty picture, and the top bar fits on a phone.' },
+  },
+  {
     date: '2026-10-11',
     target: 'site',
     title: '中英双语',

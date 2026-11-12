@@ -82,6 +82,7 @@ function select(i, { focusRow = false } = {}) {
   resetScreen();
   screen.dataset.id = p.id;
   poster.src = p.poster;
+  poster.style.objectFit = p.posterFit || '';
   poster.alt = t('js.posterAlt', { name: nameOf(p) });
   document.getElementById('ov-code').textContent = p.code;
   document.getElementById('ov-scale').textContent = t('js.scale', { v: loc(p, 'scale') });

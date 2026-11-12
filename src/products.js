@@ -11,6 +11,7 @@
 //   stages    制作管线覆盖度 { data, blender, realtime, story }，0 未用 / 1 部分 / 2 核心
 //   tags      标签数组
 //   poster    海报图路径（视口里的静态画面）
+//   posterFit 可选：'cover' 让海报铺满视口（主体必须留在画面中央的正方形内）；默认 'contain' 完整显示
 //   accent    作品主色
 //   url       完整版链接（新标签页打开）
 //   embed     可选：页内嵌入地址（为空则只提供「打开完整版」）
@@ -46,7 +47,8 @@ export const PRODUCTS = [
       ],
     },
     tags: ['三维交互', '时间轴叙事', 'Blender 烘焙', '零 API', '离线运行'],
-    poster: '/site/earth_preview_1200.webp',
+    poster: '/site/earth_preview_1200.webp',   // captured from the app itself (今日地球, UI hidden); the globe stays inside the central square
+    posterFit: 'cover',
     accent: '#3d8ee6',
     url: 'https://rory-sun.github.io/earth-chronicle/',
     embed: 'https://rory-sun.github.io/earth-chronicle/?embed=1',

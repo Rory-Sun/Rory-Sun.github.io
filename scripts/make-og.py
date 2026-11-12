@@ -56,9 +56,12 @@ def render(lang):
 
     # ---- the Earth, masked to a circle with an outer halo
     src = Image.open(os.path.join(SITE, "earth_preview_1200.webp")).convert("RGBA")
-    gray = src.convert("L")
-    bbox = gray.point(lambda v: 255 if v > 28 else 0).getbbox()
-    cx, cy = (bbox[0] + bbox[2]) // 2, (bbox[1] + bbox[3]) // 2
+    # The poster is a capture of the app: a centred globe on a star field, with a dark night limb.
+    # Blur first so stars drop under the threshold; take the radius from the taller extent (the
+    # night side is too dark to bound the width) and the horizontal centre from the image itself.
+    gray = src.convert("L").filter(ImageFilter.GaussianBlur(6))
+    bbox = gray.point(lambda v: 255 if v > 16 else 0).getbbox()
+    cx, cy = src.width // 2, (bbox[1] + bbox[3]) // 2
     rad = max(bbox[2] - bbox[0], bbox[3] - bbox[1]) // 2
     crop = src.crop((cx - rad, cy - rad, cx + rad, cy + rad))
 

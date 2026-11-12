@@ -59,6 +59,8 @@ try {
       await page.goto(base + pagePath, { waitUntil: 'networkidle' });
       // wait for the WebGL globe (or give up after a few seconds if the runner has no GL)
       await page.waitForSelector('.orb.ready', { timeout: 8000 }).catch(() => console.warn(`  [${name}/${theme}] globe did not become ready; capturing poster fallback`));
+      // the cloud layer loads after the globe is ready; without it the capture shows a bare planet
+      await page.waitForSelector('.orb.clouds', { timeout: 6000 }).catch(() => {});
       // scroll through once so lazy-loaded posters are requested, then wait for them to decode
       // (this callback runs inside the page, hence the browser globals)
       /* eslint-disable no-undef */

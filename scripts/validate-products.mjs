@@ -83,7 +83,7 @@ export function validateProducts(products, { publicDir } = {}) {
       }
     }
 
-    const known = new Set(['en', 'breakdown', 'id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
+    const known = new Set(['en', 'breakdown', 'id', 'code', 'kicker', 'title', 'subtitle', 'desc', 'scale', 'source', 'size', 'specs', 'stages', 'tags', 'poster', 'posterFit', 'accent', 'emoji', 'url', 'embed', 'demoNote', 'features', 'status', 'parent', 'blurb']);
     for (const k of Object.keys(p)) if (!known.has(k)) err(p, i, `unknown field "${k}" (typo?)`);
   });
   if (!products.some((p) => p && p.status === 'live')) errors.push('at least one product must be live');
