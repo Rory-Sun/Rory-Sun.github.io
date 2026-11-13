@@ -10,6 +10,14 @@
 //   url     可选：直达链接
 export const UPDATES = [
   {
+    date: '2026-11-13',
+    target: 'earth-chronicle',
+    title: '云层不再被大陆裁切',
+    text: '非洲等大陆上空的云原来会被裁成边缘笔直的方块，现在按卫星云图的原样铺开；迁徙路线画在云层之上，不会被天气盖住。主页上的海报也随之重拍。',
+    url: 'https://rory-sun.github.io/earth-chronicle/?mode=now',
+    en: { title: 'Clouds no longer clipped by the continents', text: 'Clouds over Africa and other continents used to be cut into straight-edged blocks; they now spread as the satellite cloud map has them, and migration routes are drawn above the weather. The poster on this page was re-shot to match.' },
+  },
+  {
     date: '2026-11-12',
     target: 'site',
     title: '首屏地球有了云层',
